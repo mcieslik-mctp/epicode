@@ -6,7 +6,28 @@ XXX
 Installation
 ------------
 
-First, please make sure you are running the correct version of Python and easy_install:
+
+*** Automatic Installation
+
+In the simple case installing Epicode requires only:
+
+```bash
+$ easy_install-2.7 epicode
+```
+
+If the above command does not work first try:
+
+```bash
+$ easy_install epicode
+```
+
+If this fails too follow the manual installation guide.
+
+
+*** Manual 
+
+Since the automatic installation procedure failed we have to make sure that we are running the correct 
+version of "Python" and easy_install:
 
 ```bash
 $ python2 --version

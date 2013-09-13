@@ -10,9 +10,7 @@ def main():
           author_email="marcin.cieslik@gmail.com",
           packages = find_packages(),
           scripts = glob("bin/*.py"),
-          install_requires = ["scikit-learn==0.14.1", "pysam==0.7.5", "moke==1.1.5"],
-          include_package_data = True,
-          package_data={"": ['*.*']},
+          install_requires = ["scikit-learn==0.14.1", "pysam==0.7.5", "moke==1.1.5"]
           )
 
 if __name__ == "__main__":
