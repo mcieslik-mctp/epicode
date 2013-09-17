@@ -514,187 +514,6 @@ def multi_code_sklearn(arrs, base=None, method=None, init=None, c=None, params=N
     return ofnc, ofna
 
 @task
-def recode_sklearn(arr=None, epi=None, odn=path("."), base=None):
-    """
-     - arr(``path``) 
-     - epi(``path``)
-    """
-    arr_marks, X = load_arr(arr)
-    epi_marks, H = load_epi(epi)
-    assert arr_marks == epi_marks
-    W = np.zeros((X.shape[0], len(H)))
-    for j in range(0, X.shape[0]):
-        W[j, :], _ = nnls(H.T, X[j, :])
-    base = base or arr.basename().splitext()[0] + "_" + epi.basename().splitext()[0]
-    ofn = odn / (base + ".arr")
-    # write 
-    write_values(ofn, W, W.shape[1])
-
-
-def load_epi(epi):
-    """
-    """
-    chk_exit(*inp_file(path(epi)))
-    with open(epi) as fh:
-        marks = fh.readline().strip().split("\t")
-        h = np.loadtxt(fh, delimiter="\t")
-    return (marks, h)
-    
-def load_arr(arr):
-    chk_exit(*inp_file(path(arr)))
-    with open(arr) as fh:
-        marks = fh.readline().strip().split("\t")
-        x = np.loadtxt(fh, delimiter="\t")
-    return (marks, x)
-
-def load_arrs(arrs):
-    xs = []
-    for arr in arrs:
-        marks, x = load_arr(arr)
-        xs.append(x)
-    return (marks, xs)
-
-def tune_lr(X_train, y_train, tuned=({'penalty': ['l1', 'l2'], 'C': [1, 2, 5, 10, 50, 100, 500]})):
-    lr = grid_search.GridSearchCV(linear_model.LogisticRegression(), tuned)
-    lr.fit(X_train, y_train, cv=10, scoring=metrics.Scorer(metrics.matthews_corrcoef))
-    return lr.best_estimator_, lr.get_params()["estimator"]
-
-def tune_pred(lr, X_test, y_test):
-    y_pred_proba = lr.predict_proba(X_test)
-    max_cutoff = 0.0
-    max_mcc = 0.0
-    for cutoff in np.linspace(0.01, 0.99, 1000):
-        y_pred = y_pred_proba[:,1] >= cutoff
-        mcc = metrics.matthews_corrcoef(y_test, y_pred)
-        if mcc > max_mcc:
-            max_mcc = mcc
-            max_cutoff = cutoff
-    auc = metrics.auc_score(y_test, y_pred_proba[:,1])
-    return max_mcc, max_cutoff, auc
-
-def single_regression(X_train, X_test, y_train, y_test):
-    single_coef = []
-    single_pred = []
-    single_params = []
-    for col in xrange(X_train.shape[1]):
-        # just single
-        X_train_small = X_train[:,col:col+1]
-        X_test_small = X_test[:,col:col+1]
-        lr, param = tune_lr(X_train_small, y_train)
-        single_coef.append(lr.coef_[0][0])
-        pred = tune_pred(lr, X_test_small, y_test)
-        single_pred.append(pred)
-        single_params.append(param)
-    return single_coef, single_pred
-
-def full_regression(X_train, X_test, y_train, y_test):
-    lr, full_params = tune_lr(X_train, y_train)
-    full_coef = lr.coef_[0]
-    full_pred = tune_pred(lr, X_test, y_test)
-    return lr, full_coef, full_pred, full_params
-
-def make_y(X, xs):
-    y = np.ndarray(len(X), dtype=int)
-    start = 0
-    for c, l in enumerate(map(len, xs)):
-        end = start+l
-        y[start:end] = c
-        start = end
-    return y
-
-def make_data(arrs, multarr, control):
-    # make X
-    codes, xs = load_arrs(arrs)
-    if control:
-        X = np.vstack(xs)
-    else:
-        codes, X = load_arr(multarr)
-    y = make_y(X, xs)
-    # split
-    X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2, random_state=0)
-    return (X_train, X_test, y_train, y_test, codes)
-
-@task
-def sparsity(arr=None):
-    marks, mat = load_arr(arr)
-    print sparsemat(mat)
-
-
-
-
-
-@task
-def logistic_predict(arr=None, pkl=None):
-    """
-     - arr(``path``) 
-     - epi(``path``)
-    """
-    codes, X = load_arr(arr)
-    with open(pkl) as fh:
-        model = pickle.load(fh)
-    y_pred = model.predict_proba(X)
-    ofn = arr.replace(".arr", "_pred.arr")
-    write_values(ofn, y_pred, 2, header=["0", "1"])
-
-@task
-def logistic_standardize(par=None, arr=None):
-    """
-     - par(``path``)
-     - fit(``path``)
-     - arr(``path``)
-    """
-    codes, weights = load_arr(arr)
-
-    dev = weights.std(axis=0)
-    betass = []
-    betasj = []
-    with open(par) as fh:
-        fh.readline()
-        for line in fh:
-            code, betaj, betas = line.split("\t")[:3]
-            betasj.append(float(betaj))
-            betass.append(float(betas))
-    betasj = np.array(betasj)
-    betasj_std = betasj * dev
-    betass = np.array(betass)
-    betass_std = betass * dev
- 
-    ofn = par.replace(".par", "_std.par")
-    with open(ofn, "wb") as wh:
-        for row in zip(codes, betasj_std, betass_std):
-            wh.write("\t".join(map(str, row)))
-
-
-@task
-def logistic_classifier(arrs=None, multarr=None, control=False):
-    """
-     - arrs(``path+``) two absolute code arrays
-     - multarr(``path``) one array from multiple codes 
-     - control(``bool``) is this a control contrast?
-    """
-    X_train, X_test, y_train, y_test, codes = make_data(arrs, multarr, control)
-
-    single_coef, single_pred = single_regression(X_train, X_test, y_train, y_test)
-    model, full_coef, full_pred, full_params = full_regression(X_train, X_test, y_train, y_test)
-
-    # files
-    full_mcc, full_mcc_cutoff, full_auc = full_pred
-    with open(multarr.replace(".arr", "_control.fit" if control else ".fit"), "wb") as wh:
-         wh.write("\n".join(["estimator: %s" % full_params,
-                             "p cutoff: %s" % full_mcc_cutoff,
-                             "mcc: %s" % full_mcc,
-                             "auc: %s" % full_auc, "\n"]))
-    with open(multarr.replace(".arr", "_control.par" if control else ".par"), "wb") as wh:
-         wh.write("mark\tbeta_joint\tbeta_single\tmcc_single\tmcc_cutoff\tauc\n")
-         for kvso in izip(codes, full_coef, single_coef, single_pred):
-             kvso = list(kvso)
-             kvso[3] = "\t".join(map(str, kvso[3]))
-             wh.write("\t".join(map(str, kvso)) + "\n")
-    with open(multarr.replace(".arr", "_control.pkl" if control else ".pkl"), "wb") as wh:
-        pickle.dump(model, wh)
-
-
-@task
 def absolute(bed=None, bams=None, odn=path("absolute_out"), runid=None, shorten=False, par=4, 
              colsca="sig95", method="pgnmf", init="nndsvd", c=None, params=None):
     """discover absolute "epigenetic codes" from levels of epigenetic marks in a 
@@ -720,15 +539,13 @@ def absolute(bed=None, bams=None, odn=path("absolute_out"), runid=None, shorten=
     abssca = scale_features(abslvl, colsca)
     if method in ("pgnmf",):
         codes = code_sklearn(abssca, method, init, c, params)
-    elif method in ("archetype",):
-        codes = code_archetype(abssca, method, init, c, params)
     else:
-        codes = code_nimfa(abssca, method, init, c, params)
+        raise ValueError("x")
 
 @task
 def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"), runid=None, shorten=False, step=100, 
-             par=4, pairsca="deseq", colsca="sig95", method="pgnmf", init="nndsvd", c=None, params=None):
-    """discover differential epigenetic "codes" from "gain"-"loss" changes in levels of epigenetic marks 
+                 par=4, pairsca="deseq", colsca="sig95", method="pgnmf", init="nndsvd", c=None, params=None):
+    """Discovers differential epigenetic "codes" from "gain"-"loss" changes in levels of epigenetic marks 
     from two experimental conditions. 
 
     This is a wrapper for the following chain of tasks:
@@ -736,7 +553,7 @@ def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"),
      1. extract_differential - extracts paired counts within windows of genomic regions
      2. scale_pairs - normalizes paired samples for sequencing depth
      3. scale_differential - converts scaled absolute counts to "gain-loss" levels
-     4. scale_features - scale gain_lo
+     4. scale_features - 
 
 
      - bed(``path``) genomic regions in the BED6+ file format 
@@ -770,10 +587,26 @@ def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"),
 
 @task
 def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=None, shorten=False, par=4, 
-             colsca="sig95", init="nndsvd", c=None, params=None, classifier="logistic", control=False):
-    """Discover discriminatory "epigenetic codes" that differentiate between two types of sites. 
+             colsca="sig95", init="nndsvd", c=None, params=None):
+    """Discovers discriminatory "epigenetic codes" that differentiate between two types of sites. 
     Designed to work on epigenetic marks mapped in a single condition, quantified within two 
-    types of loci.
+    types of loci. The two types of sites are provided as two BED6+ files e.g. a promoter file and an
+    enhancer file. The sequencing data should be provided as coordinate sorted bam files. All algorithm results 
+    are saved into the "odn" directory and prefixed with "runid", which defaults to "discriminatory". Column names 
+    in all output files are generated from input BAM filenames and are optionally shortened ("--shorten"). 
+
+    The algorithm takes three important parameters "c" the number of expected histon codes and also rank of the 
+    factored matrices, "colsca" the algorithm used to scale the levels (columns) of the final input matrices
+    to the NMF algorithm, and "init" the algorithm used to initialize matrices. The "c" parameter has no default
+    as it depends both on the number of input bam files, redundancy (correlation) of the assayed epigenetic marks 
+    and the biological complexity of the genomic regions (bed files). Typically a value between 4-10 gives the 
+    best result, but please see our publication for details.
+
+    This is a wrapper for the following chain of tasks:
+    
+      1. extract_absolute - extracts paired counts within windows of all genomic regions
+      2. scale_features - scales features for each "*lvl.arr" array separately
+      3. multi_code_sklearn - learn discriminatory codes
 
      - beds(``path+``) two BED6+ files of different genomic sites
      - bams(``path+``) sequencing data in sorted BAM files requiers BAI index files
@@ -781,15 +614,10 @@ def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=N
      - runid(``str``) run id to prefix all output files
      - shorten truncate BAM file names to unambigous strings
      - par(``int``) number of parallel processes for bam extraction
-
-     - colsca(``str``) rescaling method one of sig95, whiten
-
-     - init(``str``) NMF initialization method (see: scikit-learn for alternatives)
-     - c(``int``) number of histone codes
-     - params(``str``) PGNMF algorithm specific parameters
-
-     - classifier(``str``) machine learning algorithm for feature contrasts
-     - control(``bool``) is this a control contrast?
+     - colsca(``str``) Column rescaling method currently one of: sig95, whiten.
+     - init(``str``) NMF initialization method (see: scikit-learn for options).
+     - c(``int``) Number of expected histone codes (factorization rank).
+     - params(``str``) Specific parameters for the sklearn PGNMF algorithm (see: scikit-learn for options).
 
     """
     chk_exit(c is None, "error: c (number of codes) not specified")
@@ -798,10 +626,8 @@ def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=N
         abslvl = extract_absolute(bed, bams, odn, "%s_%s" % (i, runid), shorten, par)
         abssca = scale_features(abslvl, colsca)
         arrs.append(abssca)
-    base = odn / (runid or "contrast")
+    base = odn / (runid or "discriminatory")
     multepi, multarr = multi_code_sklearn(arrs, base=base, method="pgnmf", init=init, c=c, params=params)
-    if classifier == "logistic":
-        logistic_classifier(arrs, multarr, control)
 
 
 if __name__ == "__main__":
@@ -847,6 +673,184 @@ if __name__ == "__main__":
     task(DOC)
 
 # @task
+# def recode_sklearn(arr=None, epi=None, odn=path("."), base=None):
+#     """
+#      - arr(``path``) 
+#      - epi(``path``)
+#     """
+#     arr_marks, X = load_arr(arr)
+#     epi_marks, H = load_epi(epi)
+#     assert arr_marks == epi_marks
+#     W = np.zeros((X.shape[0], len(H)))
+#     for j in range(0, X.shape[0]):
+#         W[j, :], _ = nnls(H.T, X[j, :])
+#     base = base or arr.basename().splitext()[0] + "_" + epi.basename().splitext()[0]
+#     ofn = odn / (base + ".arr")
+#     # write 
+#     write_values(ofn, W, W.shape[1])
+
+
+# def load_epi(epi):
+#     """
+#     """
+#     chk_exit(*inp_file(path(epi)))
+#     with open(epi) as fh:
+#         marks = fh.readline().strip().split("\t")
+#         h = np.loadtxt(fh, delimiter="\t")
+#     return (marks, h)
+    
+# def load_arr(arr):
+#     chk_exit(*inp_file(path(arr)))
+#     with open(arr) as fh:
+#         marks = fh.readline().strip().split("\t")
+#         x = np.loadtxt(fh, delimiter="\t")
+#     return (marks, x)
+
+# def load_arrs(arrs):
+#     xs = []
+#     for arr in arrs:
+#         marks, x = load_arr(arr)
+#         xs.append(x)
+#     return (marks, xs)
+
+# def tune_lr(X_train, y_train, tuned=({'penalty': ['l1', 'l2'], 'C': [1, 2, 5, 10, 50, 100, 500]})):
+#     lr = grid_search.GridSearchCV(linear_model.LogisticRegression(), tuned)
+#     lr.fit(X_train, y_train, cv=10, scoring=metrics.Scorer(metrics.matthews_corrcoef))
+#     return lr.best_estimator_, lr.get_params()["estimator"]
+
+# def tune_pred(lr, X_test, y_test):
+#     y_pred_proba = lr.predict_proba(X_test)
+#     max_cutoff = 0.0
+#     max_mcc = 0.0
+#     for cutoff in np.linspace(0.01, 0.99, 1000):
+#         y_pred = y_pred_proba[:,1] >= cutoff
+#         mcc = metrics.matthews_corrcoef(y_test, y_pred)
+#         if mcc > max_mcc:
+#             max_mcc = mcc
+#             max_cutoff = cutoff
+#     auc = metrics.auc_score(y_test, y_pred_proba[:,1])
+#     return max_mcc, max_cutoff, auc
+
+# def single_regression(X_train, X_test, y_train, y_test):
+#     single_coef = []
+#     single_pred = []
+#     single_params = []
+#     for col in xrange(X_train.shape[1]):
+#         # just single
+#         X_train_small = X_train[:,col:col+1]
+#         X_test_small = X_test[:,col:col+1]
+#         lr, param = tune_lr(X_train_small, y_train)
+#         single_coef.append(lr.coef_[0][0])
+#         pred = tune_pred(lr, X_test_small, y_test)
+#         single_pred.append(pred)
+#         single_params.append(param)
+#     return single_coef, single_pred
+
+# def full_regression(X_train, X_test, y_train, y_test):
+#     lr, full_params = tune_lr(X_train, y_train)
+#     full_coef = lr.coef_[0]
+#     full_pred = tune_pred(lr, X_test, y_test)
+#     return lr, full_coef, full_pred, full_params
+
+# def make_y(X, xs):
+#     y = np.ndarray(len(X), dtype=int)
+#     start = 0
+#     for c, l in enumerate(map(len, xs)):
+#         end = start+l
+#         y[start:end] = c
+#         start = end
+#     return y
+
+# def make_data(arrs, multarr, control):
+#     # make X
+#     codes, xs = load_arrs(arrs)
+#     if control:
+#         X = np.vstack(xs)
+#     else:
+#         codes, X = load_arr(multarr)
+#     y = make_y(X, xs)
+#     # split
+#     X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2, random_state=0)
+#     return (X_train, X_test, y_train, y_test, codes)
+
+# @task
+# def sparsity(arr=None):
+#     marks, mat = load_arr(arr)
+#     print sparsemat(mat)
+
+# @task
+# def logistic_predict(arr=None, pkl=None):
+#     """
+#      - arr(``path``) 
+#      - epi(``path``)
+#     """
+#     codes, X = load_arr(arr)
+#     with open(pkl) as fh:
+#         model = pickle.load(fh)
+#     y_pred = model.predict_proba(X)
+#     ofn = arr.replace(".arr", "_pred.arr")
+#     write_values(ofn, y_pred, 2, header=["0", "1"])
+
+# @task
+# def logistic_standardize(par=None, arr=None):
+#     """
+#      - par(``path``)
+#      - fit(``path``)
+#      - arr(``path``)
+#     """
+#     codes, weights = load_arr(arr)
+
+#     dev = weights.std(axis=0)
+#     betass = []
+#     betasj = []
+#     with open(par) as fh:
+#         fh.readline()
+#         for line in fh:
+#             code, betaj, betas = line.split("\t")[:3]
+#             betasj.append(float(betaj))
+#             betass.append(float(betas))
+#     betasj = np.array(betasj)
+#     betasj_std = betasj * dev
+#     betass = np.array(betass)
+#     betass_std = betass * dev
+#     ofn = par.replace(".par", "_std.par")
+#     with open(ofn, "wb") as wh:
+#         for row in zip(codes, betasj_std, betass_std):
+#             wh.write("\t".join(map(str, row)))
+
+
+#, classifier="logistic", control=False
+# - classifier(``str``) machine learning algorithm for feature contrasts
+# - control(``bool``) is this a control contrast?
+# if classifier == "logistic":
+#     logistic_classifier(arrs, multarr, control)
+# @task
+# def logistic_classifier(arrs=None, multarr=None, control=False):
+#     """
+#      - arrs(``path+``) two absolute code arrays
+#      - multarr(``path``) one array from multiple codes 
+#      - control(``bool``) is this a control contrast?
+#     """
+#     X_train, X_test, y_train, y_test, codes = make_data(arrs, multarr, control)
+#     single_coef, single_pred = single_regression(X_train, X_test, y_train, y_test)
+#     model, full_coef, full_pred, full_params = full_regression(X_train, X_test, y_train, y_test)
+#     # files
+#     full_mcc, full_mcc_cutoff, full_auc = full_pred
+#     with open(multarr.replace(".arr", "_control.fit" if control else ".fit"), "wb") as wh:
+#          wh.write("\n".join(["estimator: %s" % full_params,
+#                              "p cutoff: %s" % full_mcc_cutoff,
+#                              "mcc: %s" % full_mcc,
+#                              "auc: %s" % full_auc, "\n"]))
+#     with open(multarr.replace(".arr", "_control.par" if control else ".par"), "wb") as wh:
+#          wh.write("mark\tbeta_joint\tbeta_single\tmcc_single\tmcc_cutoff\tauc\n")
+#          for kvso in izip(codes, full_coef, single_coef, single_pred):
+#              kvso = list(kvso)
+#              kvso[3] = "\t".join(map(str, kvso[3]))
+#              wh.write("\t".join(map(str, kvso)) + "\n")
+#     with open(multarr.replace(".arr", "_control.pkl" if control else ".pkl"), "wb") as wh:
+#         pickle.dump(model, wh)
+
+# @task
 # def code_pymf(arr, method=None, init=None, c=None, params=None, transform=True):
 #     """(internal) non-negative matrix factorization using scikits-learn
 #      - arr(``path``)
@@ -878,7 +882,6 @@ if __name__ == "__main__":
 #     if transform:
 #         ofn = arr.replace(".arr", "_%s-c#%s-p#%s.arr" % (method, c, params or ""))
 #         write_values(ofn, model.W, c)
-
 
 # @task
 # def code_nimfa(arr, method=None, init=None, c=None, params=None):
@@ -915,3 +918,8 @@ if __name__ == "__main__":
 #         bam_transformed = decomp.fitted()
 #         ofn = arr.replace(".arr", "_%s-c#%s-i#%s-p#%s.arr" % (method, c, init, params or ""))
 #         write_values(ofn, bam_transformed, c)
+
+    # elif method in ("archetype",):
+    #     codes = code_archetype(abssca, method, init, c, params)
+    # else:
+    #     codes = code_nimfa(abssca, method, init, c, params)
