@@ -14,15 +14,17 @@ associated patterns.
     
 Epicode provides three modes of operation:
 
-* "absolute" for experiments with multiple histone modifications or 
-epigenetics marks mapped in a single condition. Epicode finds "codes" 
-of frequently co-occurring marks. 
-* "differential" for experiments with the same marks mapped in two conditions.
-Epicode finds patterns of coordinated marke changes i.e. subsets of marks
-that are often gained or lost together.
-* "discriminatory" for experiments where one is interested in the features
-that distinguish two sets of genomic loci. Multiple histone modifications 
-are mapped in a single condition and quantified for two sets of loci.
+    * "absolute" for experiments with multiple histone modifications or 
+      epigenetics marks mapped in a single condition. Epicode finds "codes" 
+      of frequently co-occurring marks.
+
+    * "differential" for experiments with the same marks mapped in two conditions.
+      Epicode finds patterns of coordinated marke changes i.e. subsets of marks
+     that are often gained or lost together.
+
+    * "discriminatory" for experiments where one is interested in the features
+      that distinguish two sets of genomic loci. Multiple histone modifications 
+      are mapped in a single condition and quantified for two sets of loci.
 
 As input it expects a BED6+ files of reference genomic regions (-bed or -beds)
 and one ("absolute", "discriminatory") or two "differential" sets of aligned 
@@ -30,12 +32,9 @@ sequence reads in sorted BAM files.
 
 ```bash
 epicode.py absolute -bed <<BED6+ file>> -bams <<BAM files>> [options]
-
 epicode.py differential -bed <<BED6+ file>> -abams <<BAM files>> -abams <<BAM files>> [options]
-
 epicode.py discriminatory -beds <<BED6+ files>> -bams <<BAM files>> [options]
 ```
-
 
 To get help specific to the two methods see:
 
@@ -63,7 +62,7 @@ $ easy_install epicode
 ```
 
 If the installation procedure runs, but fails at some point follow the manual installation guide.
-If "easy_install" is still not found please try installing "setuptools" first (see below). 
+If ```easy_install``` is still not found please try installing ```setuptools``` first (see below). 
 
 
 ### Manual Installation
