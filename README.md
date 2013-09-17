@@ -83,22 +83,15 @@ $ which easy_install
 | .../bin/easy_install
 ```
 
+If you cannot find "easy_install" you have to install "setuptools" this is best done system-wide,
+using the specific mechanisms. We will use "easy_install" to installl additional dependencies
+later on.
 
-Epicode has a number of dependencies. The correct way of installing them is distribution specific.
-At minimum one should install "numpy" and "scipy" using the sytem-wide mechanism. Epicode was 
-tested and developed for "numpy-1.7.1" and "scipy-0.12.0", but should also work on other recent
-releases.
-
-For some common linux distributions follow the instructions at: http://www.scipy.org/install.html 
-
-For Arch linux:
+Arch:
 
 ```bash
-$ pacman -S extra/python2-numpy community/python2-scipy 
-````
-
-To install additional dependencies we will use easy_install. This toos is part of the "setuptools" package, 
-which is provided on most systems, but if not it should be installed system wide:
+$ pacman -S python2-setuptools
+```
 
 Fedora: 
 
@@ -112,20 +105,45 @@ Ubuntu:
 $ sudo apt-get install python-setuptools python-dev
 ```
 
-Arch:
+Alternatively one can try to follow the instructions at:
+
+https://pypi.python.org/pypi/setuptools/0.6c11
+
+#### Installation of Dependencies
+
+Epicode has a small number of dependencies. On many systems they will be successfully installed
+using the "setuptools/easy_install" mechanism. However, we recommend to install "numpy" and "scipy"
+using the sytem-wide mechanism. As their compilation is particularly involved. Epicode was 
+tested and developed for "numpy-1.7.1" and "scipy-0.12.0", but should also work on other relatively
+recent releases.
+
+For Arch linux:
 
 ```bash
-$ pacman -S python2-setuptools
+$ pacman -S extra/python2-numpy community/python2-scipy 
 ```
 
+Fedora: 
 
-We will install "pysam", "scikit-learn", and "moke" from PyPI:
+```bash
+$ yum install numpy scipy
+```
+
+Ubuntu:
+
+```bash
+$ sudo apt-get install python-numpy python-scipy
+```
+
+For other operating systems follow the instructions at:
+
+http://www.scipy.org/install.html 
+
+Next, we will install "pysam", "scikit-learn", and "moke" from PyPI:
 
 ```bash
 $ easy_install pysam==0.7.5 scikit-learn==0.14.1 moke==1.1.5
 ```
-
-
 
 If all the commands returned correctly you should be able to start python:
 
