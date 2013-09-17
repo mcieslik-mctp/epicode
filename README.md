@@ -31,9 +31,9 @@ and one ("absolute", "discriminatory") or two ("differential") sets of aligned
 sequence reads in sorted BAM files.
 
 ```bash
-epicode.py absolute -bed <<BED6+ file>> -bams <<BAM files>> [options]
-epicode.py differential -bed <<BED6+ file>> -abams <<BAM files>> -abams <<BAM files>> [options]
-epicode.py discriminatory -beds <<BED6+ files>> -bams <<BAM files>> [options]
+epicode.py absolute -bed [BED6+ file] -bams [BAM files] [options]
+epicode.py differential -bed [BED6+ file] -abams [BAM files] -abams [BAM files] [options]
+epicode.py discriminatory -beds [BED6+ files] -bams [BAM files] [options]
 ```
 
 To get help specific to the two methods see:
@@ -146,8 +146,13 @@ $ easy_install pysam==0.7.5 scikit-learn==0.14.1 moke==1.1.5
 
 If all the commands returned correctly you should be able to start ```python```:
 
-```python
+```bash
 $ python2
+```
+
+And issue the following statements:
+
+```python
 >>> import numpy
 >>> import scipy
 >>> import sklearn
