@@ -588,25 +588,30 @@ def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"),
 @task
 def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=None, shorten=False, par=4, 
              colsca="sig95", init="nndsvd", c=None, params=None):
-    """Discovers discriminatory "epigenetic codes" that differentiate between two types of sites. 
-    Designed to work on epigenetic marks mapped in a single condition, quantified within two 
-    types of loci. The two types of sites are provided as two BED6+ files e.g. a promoter file and an
-    enhancer file. The sequencing data should be provided as coordinate sorted bam files. All algorithm results 
-    are saved into the "odn" directory and prefixed with "runid", which defaults to "discriminatory". Column names 
-    in all output files are generated from input BAM filenames and are optionally shortened ("--shorten"). 
+    """Discovers discriminatory "epigenetic codes" that differentiate between two (or more, but this is untested) 
+    types of sites. Designed to work on epigenetic marks mapped in a single condition, quantified within two 
+    (or more) types of loci. The types of sites are provided as BED6+ files e.g. a promoter file and an enhancer 
+    file. The sequencing data should be provided as coordinate sorted bam files (e.g. using samtools or novosort). 
+    The algorithm results (files) are saved into the "odn" directory and prefixed with "runid", which defaults to 
+    "discriminatory". Column names within all output files that are data matrices are generated from input BAM 
+    filenames and are optionally shortened ("--shorten" option) by removing redundant substrings. 
 
-    The algorithm takes three important parameters "c" the number of expected histon codes and also rank of the 
+    The algorithm takes three important parameters "c" the number of expected histone codes and also rank of the 
     factored matrices, "colsca" the algorithm used to scale the levels (columns) of the final input matrices
-    to the NMF algorithm, and "init" the algorithm used to initialize matrices. The "c" parameter has no default
-    as it depends both on the number of input bam files, redundancy (correlation) of the assayed epigenetic marks 
-    and the biological complexity of the genomic regions (bed files). Typically a value between 4-10 gives the 
-    best result, but please see our publication for details.
+    to the NMF algorithm, and "init" the algorithm used to initialize matrices. The two latter parameters are
+    best left as defaults. The "c" parameter has no default as it depends both on the number of input bam files, 
+    redundancy (correlation) of the assayed epigenetic marks and the biological complexity of the genomic regions 
+    (bed files). Typically a value between 4-10 gives interpretable results, but please see our publication for 
+    some properties of NMF applied to epigenomic data.
 
-    This is a wrapper for the following chain of tasks:
+    This is a wrapper for the following chain of tasks, each task saves generated data as intermediate files in 
+    a sigle "run" directory:
     
-      1. extract_absolute - extracts paired counts within windows of all genomic regions
-      2. scale_features - scales features for each "*lvl.arr" array separately
+      1. extract_absolute - extracts mark lavels "*lvl.arr" for all mark (bam file) region (bed file) combinations.
+      2. scale_features - scales features (columns) within each "*lvl.arr" array.
       3. multi_code_sklearn - learn discriminatory codes
+
+    The procedure creates two files for the two matrices "*{parameters}.arr" (optionally) and "*{parameters}.epi".
 
      - beds(``path+``) two BED6+ files of different genomic sites
      - bams(``path+``) sequencing data in sorted BAM files requiers BAI index files
@@ -628,47 +633,11 @@ def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=N
         arrs.append(abssca)
     base = odn / (runid or "discriminatory")
     multepi, multarr = multi_code_sklearn(arrs, base=base, method="pgnmf", init=init, c=c, params=params)
-
+    return multepi, multarr
 
 if __name__ == "__main__":
     DOC = \
-    """epicode.py - discover epigenetic "codes" from ChIP-seq data.
-
-    The goal of epicode is to discover patterns of histone modifications.
-    We are looking for subsets of marks that tend to occur in sub-portions 
-    of the data ["absolute" and "discriminatory" modes] or coordinately 
-    change ("gain" or "loss" at the same time) ["differential" mode]. 
-    
-    The algorithm finds frequently co-occurring or coordinately changing marks. 
-    In addition it is possible to differentiate genomic loci based their 
-    associated patterns.
-    
-    Epicode provides three modes of operation:
-     
-      - "absolute" for experiments with multiple histone modifications or 
-        epigenetics marks mapped in a single condition. Epicode finds "codes" 
-        of frequently co-occurring marks. 
-      - "differential" for experiments with the same marks mapped in two conditions.
-        Epicode finds patterns of coordinated marke changes i.e. subsets of marks
-        that are often gained or lost together.
-      - "discriminatory" for experiments where one is interested in the features
-        that distinguish two sets of genomic loci. Multiple histone modifications 
-        are mapped in a single condition and quantified for two sets of loci.
-
-    As input it expects a BED6+ files of reference genomic regions (-bed or -beds)
-    and one ("absolute", "discriminatory") or two "differential" sets of aligned 
-    sequence reads in sorted BAM files.
-
-      epicode.py absolute -bed <<BED6+ file>> -bams <<BAM files>> [options]
-
-      epicode.py differential -bed <<BED6+ file>> -abams <<BAM files>> -abams <<BAM files>> [options]
-
-      epicode.py discriminatory -beds <<BED6+ files>> -bams <<BAM files>> [options]
-
-    To get help specific to the two methods see:
-
-      epicode.py {absolute, differential, discriminatory} --help
-
+    """
     """
     task(DOC)
 
@@ -923,3 +892,40 @@ if __name__ == "__main__":
     #     codes = code_archetype(abssca, method, init, c, params)
     # else:
     #     codes = code_nimfa(abssca, method, init, c, params)
+
+# epicode.py - discover epigenetic "codes" from ChIP-seq data.
+
+#     The goal of epicode is to discover patterns of histone modifications.
+#     We are looking for subsets of marks that tend to occur in sub-portions 
+#     of the data ["absolute" and "discriminatory" modes] or coordinately 
+#     change ("gain" or "loss" at the same time) ["differential" mode]. 
+    
+#     The algorithm finds frequently co-occurring or coordinately changing marks. 
+#     In addition it is possible to differentiate genomic loci based their 
+#     associated patterns.
+    
+#     Epicode provides three modes of operation:
+     
+#       - "absolute" for experiments with multiple histone modifications or 
+#         epigenetics marks mapped in a single condition. Epicode finds "codes" 
+#         of frequently co-occurring marks. 
+#       - "differential" for experiments with the same marks mapped in two conditions.
+#         Epicode finds patterns of coordinated marke changes i.e. subsets of marks
+#         that are often gained or lost together.
+#       - "discriminatory" for experiments where one is interested in the features
+#         that distinguish two sets of genomic loci. Multiple histone modifications 
+#         are mapped in a single condition and quantified for two sets of loci.
+
+#     As input it expects a BED6+ files of reference genomic regions (-bed or -beds)
+#     and one ("absolute", "discriminatory") or two "differential" sets of aligned 
+#     sequence reads in sorted BAM files.
+
+#       epicode.py absolute -bed <<BED6+ file>> -bams <<BAM files>> [options]
+
+#       epicode.py differential -bed <<BED6+ file>> -abams <<BAM files>> -abams <<BAM files>> [options]
+
+#       epicode.py discriminatory -beds <<BED6+ files>> -bams <<BAM files>> [options]
+
+#     To get help specific to the two methods see:
+
+#       epicode.py {absolute, differential, discriminatory} --help
