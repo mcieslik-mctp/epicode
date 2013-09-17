@@ -5,8 +5,8 @@ epicode.py - discover epigenetic "codes" from ChIP-seq data.
 
 The goal of epicode is to discover patterns of histone modifications.
 We are looking for subsets of marks that tend to occur in sub-portions 
-of the data ["absolute" and "discriminatory" modes] or coordinately 
-change ("gain" or "loss" at the same time) ["differential" mode]. 
+of the data ("absolute" and "discriminatory" modes) or coordinately 
+change ("gain" or "loss" at the same time) ("differential" mode). 
     
 The algorithm finds frequently co-occurring or coordinately changing marks. 
 In addition it is possible to differentiate genomic loci based their 
@@ -27,7 +27,7 @@ Epicode provides three modes of operation:
   are mapped in a single condition and quantified for two sets of loci.
 
 As input it expects a BED6+ files of reference genomic regions (-bed or -beds)
-and one ("absolute", "discriminatory") or two "differential" sets of aligned 
+and one ("absolute", "discriminatory") or two ("differential") sets of aligned 
 sequence reads in sorted BAM files.
 
 ```bash
@@ -68,22 +68,22 @@ If ```easy_install``` is still not found please try installing ```setuptools``` 
 ### Manual Installation
 
 Since the automatic installation procedure failed we have to make sure that we are running the correct 
-version of "Python" and easy_install (setuptools):
+version of ```Python``` and ```easy_install``` (```setuptools```):
 
 ```bash
 $ python2 --version
 | Python 2.7.5
 ```
 
-Verify that "easy_install" can be found:
+Verify that ```easy_install``` can be found:
 
 ```bash
 $ which easy_install
 | .../bin/easy_install
 ```
 
-If you cannot find "easy_install" you have to install "setuptools" this is best done system-wide,
-using the specific mechanisms. We will use "easy_install" to installl additional dependencies
+If you cannot find ```easy_install``` you have to install ```setuptools``` this is best done system-wide,
+using the specific mechanisms. We will use ```easy_install``` to install additional dependencies
 later on.
 
 Arch:
@@ -111,10 +111,10 @@ https://pypi.python.org/pypi/setuptools/0.6c11
 #### Installation of Dependencies
 
 Epicode has a small number of dependencies. On many systems they will be successfully installed
-using the "setuptools/easy_install" mechanism. However, we recommend to install "numpy" and "scipy"
-using the sytem-wide mechanism. As their compilation is particularly involved. Epicode was 
-tested and developed for "numpy-1.7.1" and "scipy-0.12.0", but should also work on other relatively
-recent releases.
+using the ```setuptools/easy_install``` mechanism. However, we recommend to install ```numpy``` and
+```scipy``` using the sytem-wide mechanism. As their compilation is particularly involved. Epicode
+was tested and developed for ```numpy-1.7.1``` and ```scipy-0.12.0```, but should also work on
+other relatively recent releases.
 
 For Arch linux:
 
@@ -138,13 +138,13 @@ For other operating systems follow the instructions at:
 
 http://www.scipy.org/install.html 
 
-Next, we will install "pysam", "scikit-learn", and "moke" from PyPI:
+Next, we will install ```pysam```, ```scikit-learn```, and ```moke``` from PyPI:
 
 ```bash
 $ easy_install pysam==0.7.5 scikit-learn==0.14.1 moke==1.1.5
 ```
 
-If all the commands returned correctly you should be able to start python:
+If all the commands returned correctly you should be able to start ```python```:
 
 ```python
 $ python2
