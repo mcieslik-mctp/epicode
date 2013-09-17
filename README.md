@@ -70,6 +70,8 @@ If ```easy_install``` is still not found please try installing ```setuptools``` 
 Since the automatic installation procedure failed we have to make sure that we are running the correct 
 version of ```Python``` and ```easy_install``` (```setuptools```):
 
+#### Python and setuptools
+
 ```bash
 $ python2 --version
 | Python 2.7.5
