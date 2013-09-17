@@ -14,17 +14,17 @@ associated patterns.
     
 Epicode provides three modes of operation:
 
-    * "absolute" for experiments with multiple histone modifications or 
-      epigenetics marks mapped in a single condition. Epicode finds "codes" 
-      of frequently co-occurring marks.
+* "absolute" for experiments with multiple histone modifications or 
+  epigenetics marks mapped in a single condition. Epicode finds "codes" 
+  of frequently co-occurring marks.
 
-    * "differential" for experiments with the same marks mapped in two conditions.
-      Epicode finds patterns of coordinated marke changes i.e. subsets of marks
-     that are often gained or lost together.
+* "differential" for experiments with the same marks mapped in two conditions.
+  Epicode finds patterns of coordinated marke changes i.e. subsets of marks
+  that are often gained or lost together.
 
-    * "discriminatory" for experiments where one is interested in the features
-      that distinguish two sets of genomic loci. Multiple histone modifications 
-      are mapped in a single condition and quantified for two sets of loci.
+* "discriminatory" for experiments where one is interested in the features
+  that distinguish two sets of genomic loci. Multiple histone modifications 
+  are mapped in a single condition and quantified for two sets of loci.
 
 As input it expects a BED6+ files of reference genomic regions (-bed or -beds)
 and one ("absolute", "discriminatory") or two "differential" sets of aligned 
