@@ -3,6 +3,18 @@ EpiCODE
 
 epicode.py - discover epigenetic "codes" from ChIP-seq data.
 
+```bash
+epicode.py absolute -bed [BED6+ file] -bams [BAM files] [options]
+epicode.py differential -bed [BED6+ file] -abams [BAM files] -bbams [BAM files] [options]
+epicode.py discriminatory -beds [BED6+ files] -bams [BAM files] [options]
+```
+
+To get help specific to these three methods see:
+
+```bash
+$ epicode.py {absolute, differential, discriminatory} --help
+```
+
 The goal of epicode is to discover patterns of histone modifications from
 aligned sequence data. Epicode looks for combinations (subsets) of marks
 that tend to occur in (at least) sub-portions of the data. Alternatively
@@ -16,15 +28,11 @@ attempts to find patterns of coordinated mark changes. In "discriminatory"
 mode two (or more) genomic loci are differentiated based their associated
 patterns.
 
+
 EpiCODE modes
 -------------
 
-Each of the following modes corresponds to a specific subcommand of epicode.
-To get help specific to these three methods see:
-
-```bash
-$ epicode.py {absolute, differential, discriminatory} --help
-```
+Each of the provided modes corresponds to a specific subcommand of epicode.
 
 * "absolute" for experiments with multiple histone modifications or 
   epigenetics marks mapped in a single condition. Epicode finds patterns
@@ -45,19 +53,15 @@ sorted BAM files. Epicode is not filtering duplicate reads, please run
 ``samtools dedup`` to create deduplicated input files.
 
 
+EpiCODE tasks
+-------------
 
-
-```bash
-epicode.py absolute -bed [BED6+ file] -bams [BAM files] [options]
-epicode.py differential -bed [BED6+ file] -abams [BAM files] -bbams [BAM files] [options]
-epicode.py discriminatory -beds [BED6+ files] -bams [BAM files] [options]
-```
+The three provided high-level modes are wrappers around tasks with 
 
 
 
 Installation
 ------------
-
 
 ### Automatic Installation
 
@@ -82,7 +86,7 @@ If ```easy_install``` is still not found please try installing ```setuptools``` 
 Since the automatic installation procedure failed we have to make sure that we are running the correct 
 version of ```Python``` and ```easy_install``` (```setuptools```):
 
-#### Python and setuptools
+#### Python and Setuptools
 
 ```bash
 $ python2 --version
@@ -122,7 +126,7 @@ Alternatively one can try to follow the instructions at:
 
 https://pypi.python.org/pypi/setuptools/0.6c11
 
-#### Installation of Dependencies
+#### Additional Dependencies
 
 Epicode has a small number of dependencies. On many systems they will be successfully installed
 using the ```setuptools/easy_install``` mechanism. However, we recommend to install ```numpy``` and
