@@ -3,44 +3,56 @@ EpiCODE
 
 epicode.py - discover epigenetic "codes" from ChIP-seq data.
 
-The goal of epicode is to discover patterns of histone modifications.
-We are looking for subsets of marks that tend to occur in sub-portions 
-of the data ("absolute" and "discriminatory" modes) or coordinately 
-change ("gain" or "loss" at the same time) ("differential" mode). 
-    
-The algorithm finds frequently co-occurring or coordinately changing marks. 
-In addition it is possible to differentiate genomic loci based their 
-associated patterns.
-    
-Epicode provides three modes of operation:
+The goal of epicode is to discover patterns of histone modifications from
+aligned sequence data. Epicode looks for combinations (subsets) of marks
+that tend to occur in (at least) sub-portions of the data. Alternatively
+it identifies combinations of marks that change coordinately i.e. are
+"gained" or "lost" frequently at the same time.
+
+The algorithm provides three modes "absolute", "discriminatory", and
+"differential". The first two modes identify co-occurring marks within
+one or many sets of genomic losi, respectively. The "differential" mode
+attempts to find patterns of coordinated mark changes. In "discriminatory"
+mode two (or more) genomic loci are differentiated based their associated
+patterns.
+
+EpiCODE modes
+-------------
+
+Each of the following modes corresponds to a specific subcommand of epicode.
+To get help specific to these three methods see:
+
+```bash
+$ epicode.py {absolute, differential, discriminatory} --help
+```
 
 * "absolute" for experiments with multiple histone modifications or 
-  epigenetics marks mapped in a single condition. Epicode finds "codes" 
-  of frequently co-occurring marks.
+  epigenetics marks mapped in a single condition. Epicode finds patterns
+  (epigenetic codes) of frequently co-occurring marks.
 
 * "differential" for experiments with the same marks mapped in two conditions.
-  Epicode finds patterns of coordinated marke changes i.e. subsets of marks
-  that are often gained or lost together.
+  Epicode finds patterns of coordinated mark changes i.e. subsets of marks
+  that are often "gained" or "lost" at the same time.
 
-* "discriminatory" for experiments where one is interested in the features
-  that distinguish two sets of genomic loci. Multiple histone modifications 
-  are mapped in a single condition and quantified for two sets of loci.
+* "discriminatory" for experiments where one is interested in the epigenetic
+  patterns that distinguish different sets of (preferably non-overlapping) genomic
+  loci. Multiple histone modifications are mapped in a single condition and
+  quantified for two two or more (experimental) sets of loci.
 
-As input it expects a BED6+ files of reference genomic regions (-bed or -beds)
-and one ("absolute", "discriminatory") or two ("differential") sets of aligned 
-sequence reads in sorted BAM files.
+As input epicode expects at least one BED6+ file of reference genomic regions
+(-bed or -beds) and at least one set of aligned sequence reads in coordinate
+sorted BAM files. Epicode is not filtering duplicate reads, please run
+``samtools dedup`` to create deduplicated input files.
+
+
+
 
 ```bash
 epicode.py absolute -bed [BED6+ file] -bams [BAM files] [options]
-epicode.py differential -bed [BED6+ file] -abams [BAM files] -abams [BAM files] [options]
+epicode.py differential -bed [BED6+ file] -abams [BAM files] -bbams [BAM files] [options]
 epicode.py discriminatory -beds [BED6+ files] -bams [BAM files] [options]
 ```
 
-To get help specific to the two methods see:
-
-```bash
-epicode.py {absolute, differential, discriminatory} --help
-```
 
 
 Installation
