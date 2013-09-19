@@ -10,7 +10,7 @@ from sklearn import decomposition, cross_validation, grid_search, linear_model, 
 from sklearn.decomposition.nmf import nnls
 from pysam import Samfile
 
-# stats
+## statistical functions
 
 def sparsevec(x):
     """(internal) Calculates the sparsity of a vector.
@@ -99,7 +99,7 @@ def scapair(raw, method):
     return scaled
 
 
-# helpers
+## helper functions
 
 def run_par(fn, args, par=4):
     """(internal) Applies function onto argument list in parallel (multiprocessing).
@@ -167,7 +167,8 @@ def write_values(fn, values, c, header=None):
         wh.write(header + "\n")
         np.savetxt(wh, values, delimiter="\t")
 
-# absolute mode
+
+## absolute mode functions
 
 def parse_bam_absolute(fn, regs):
     """(internal) Parses bam file in absolute mode. Proceeds by counting reads mapping 
@@ -238,7 +239,8 @@ def extract_absolute(bed=None, bams=None, odn=None, runid=None, shorten=False, p
     log("saved: %s" % fn)
     return fn
 
-# differential mode
+
+## differential mode functions
 
 def parse_bam_differential(afn, bfn, regs, step):
     """(internal) Parses bam file in absolute mode. Proceeds by counting reads mapping 
@@ -334,7 +336,6 @@ def extract_diff(bed=None, abams=None, bbams=None, odn=None, runid=None, shorten
     log("saved: %s" % fn)
     return fn
 
-# scaling for paired samples
 
 @task
 def scale_pairs(arr, scalgo="deseq"):
@@ -820,45 +821,8 @@ if __name__ == "__main__":
 #         bam_transformed = decomp.fitted()
 #         ofn = arr.replace(".arr", "_%s-c#%s-i#%s-p#%s.arr" % (method, c, init, params or ""))
 #         write_values(ofn, bam_transformed, c)
+#     # elif method in ("archetype",):
+#     #     codes = code_archetype(abssca, method, init, c, params)
+#     # else:
+#     #     codes = code_nimfa(abssca, method, init, c, params)
 
-    # elif method in ("archetype",):
-    #     codes = code_archetype(abssca, method, init, c, params)
-    # else:
-    #     codes = code_nimfa(abssca, method, init, c, params)
-
-# epicode.py - discover epigenetic "codes" from ChIP-seq data.
-
-#     The goal of epicode is to discover patterns of histone modifications.
-#     We are looking for subsets of marks that tend to occur in sub-portions 
-#     of the data ["absolute" and "discriminatory" modes] or coordinately 
-#     change ("gain" or "loss" at the same time) ["differential" mode]. 
-    
-#     The algorithm finds frequently co-occurring or coordinately changing marks. 
-#     In addition it is possible to differentiate genomic loci based their 
-#     associated patterns.
-    
-#     Epicode provides three modes of operation:
-     
-#       - "absolute" for experiments with multiple histone modifications or 
-#         epigenetics marks mapped in a single condition. Epicode finds "codes" 
-#         of frequently co-occurring marks. 
-#       - "differential" for experiments with the same marks mapped in two conditions.
-#         Epicode finds patterns of coordinated marke changes i.e. subsets of marks
-#         that are often gained or lost together.
-#       - "discriminatory" for experiments where one is interested in the features
-#         that distinguish two sets of genomic loci. Multiple histone modifications 
-#         are mapped in a single condition and quantified for two sets of loci.
-
-#     As input it expects a BED6+ files of reference genomic regions (-bed or -beds)
-#     and one ("absolute", "discriminatory") or two "differential" sets of aligned 
-#     sequence reads in sorted BAM files.
-
-#       epicode.py absolute -bed <<BED6+ file>> -bams <<BAM files>> [options]
-
-#       epicode.py differential -bed <<BED6+ file>> -abams <<BAM files>> -abams <<BAM files>> [options]
-
-#       epicode.py discriminatory -beds <<BED6+ files>> -bams <<BAM files>> [options]
-
-#     To get help specific to the two methods see:
-
-#       epicode.py {absolute, differential, discriminatory} --help
