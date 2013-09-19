@@ -516,63 +516,81 @@ def multi_code_sklearn(arrs, base=None, method=None, init=None, c=None, params=N
 @task
 def absolute(bed=None, bams=None, odn=path("absolute_out"), runid=None, shorten=False, par=4, 
              colsca="sig95", method="pgnmf", init="nndsvd", c=None, params=None):
-    """discover absolute "epigenetic codes" from levels of epigenetic marks in a 
-    single experimental condition. 
+    """Discover absolute "epigenetic codes" from levels of epigenetic marks in a single experimental 
+    condition. Designed to work on epigenetic marks mapped in one condition and quantified within one type of 
+    loci. The sites should be provided as a BED6+ file e.g. a promoter file or an enhancer file. The 
+    sequencing data should be provided as coordinate sorted bam files (e.g. using samtools or novosort). 
+    The algorithm results (files) are saved into the "odn" directory (default "absolute_out" and prefixed 
+    with "runid", which defaults to an automatically generated and likely unique integer. Column names 
+    within all output files that are data matrices are generated from input BAM filenames and are optionally 
+    shortened ("--shorten" option) by removing redundant substrings. 
 
-     - bed(``path``) genomic regions in the BED6+ file format 
-     - bams(``path+``) sequencing data in sorted BAM files requiers BAI index files
-     - odn(``path``) output directory name
-     - runid(``str``) run id to prefix all output files
-     - shorten truncate BAM file names to unambigous strings
-     - par(``int``) number of parallel processes for bam extraction
+    This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate 
+    files in a sigle "run" directory:
 
-     - colsca(``str``) rescaling method one of sig95, whiten
+      1. extract_absolute - Extracts counts of reads overlapping genomic regions and 
+         normalizes by region length.
+      2. scale_features - Scales features (columns) within each "*lvl.arr" array. 
+      2. code_sklearn - Learn discriminatory epigenetic codes.
 
-     - method(``str``) NMF factorization method (see: nimfa documentation for alternatives)
-     - init(``str``) NMF initialization method (see: scikit-learn and nimfa for alternatives)
-     - c(``int``) number of histone codes
-     - params(``str``) algorithm specific parameters
+    The procedure creates two files for the two matrices "*{parameters}.arr" (optionally) and "*{parameters}.epi".
+
+      - bed(``path``) Genomic regions in the BED6+ file format.
+      - bams(``path+``) Sequencing data in coordinated sorted BAM files (requiers BAI index files).
+      - odn(``path``) Output directory name.
+      - runid(``str``) Run id to prefix all output files.
+      - shorten(``bool``) Truncate BAM file names to unambigous strings.
+      - par(``int``) Number of parallel processes for BAM extraction.
+      - colsca(``str``) Column rescaling method one of: sig95, whiten.
+      - method(``str``) currently only pgnmf from scikit-learn is supprted.
+      - init(``str``) NMF initialization method (see: scikit-learn documentation for alternatives).
+      - c(``int``) 
+      - params(``str``) 
 
     """
     chk_exit(c is None, "error: c (number of codes) not specified")
     abslvl = extract_absolute(bed, bams, odn, runid, shorten, par)
     abssca = scale_features(abslvl, colsca)
-    if method in ("pgnmf",):
-        codes = code_sklearn(abssca, method, init, c, params)
-    else:
-        raise ValueError("x")
+    codes = code_sklearn(abssca, method, init, c, params)
+    return codes
 
 @task
 def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"), runid=None, shorten=False, step=100, 
                  par=4, pairsca="deseq", colsca="sig95", method="pgnmf", init="nndsvd", c=None, params=None):
     """Discovers differential epigenetic "codes" from "gain"-"loss" changes in levels of epigenetic marks 
-    from two experimental conditions. 
+    from two experimental conditions. Designed to work on epigenetic marks mapped in two conditions (A and B) 
+    quantified in one type of locus. The sites should be provided as a BED6+ file e.g. a promoter file or an 
+    enhancer  file. The sequencing data should be provided as coordinate sorted bam files (e.g. using samtools 
+    or novosort). The algorithm results (files) are saved into the "odn" directory (default "differential_out" 
+    and prefixed with "runid", which defaults to an automatically generated and likely unique integer. Column 
+    names within all output files that are data matrices are generated from input BAM filenames and are 
+    optionally shortened ("--shorten" option) by removing redundant substrings. 
 
-    This is a wrapper for the following chain of tasks:
+    This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate 
+    files in a sigle "run" directory:
     
-     1. extract_differential - extracts paired counts within windows of genomic regions
-     2. scale_pairs - normalizes paired samples for sequencing depth
-     3. scale_differential - converts scaled absolute counts to "gain-loss" levels
-     4. scale_features - 
-
-
-     - bed(``path``) genomic regions in the BED6+ file format 
-     - abams(``path+``) sample A sequencing data in sorted BAM files requiers BAI index files
-     - bbams(``path+``) sample B sequencing data in sorted BAM files requiers BAI index files
-     - step(``int``) step size (bp) for coverage calculation with regions
-
-     - odn(``path``) output directory name
-     - runid(``str``) run id to prefix all output files
-     - shorten truncate BAM file names to unambigous strings
-     - par(``int``) number of parallel processes for bam extraction
-
-     - pairsca(``str``) paired samples scaling method, one of: deseq
-     - colsca(``str``) rescaling method, one of: sig95, whiten
+      1. extract_differential - Extracts paired counts within genomic regions in "step" resultion.
+      2. scale_pairs - Normalizes counts paired samples for sequencing depth.
+      3. scale_differential - Converts scaled absolute counts to "gain-loss" levels.
+      4. scale_features - Scales features (columns) within each "*lvl.arr" array.
+      5. code_sklearn - Learn absolute epigenetic codes.
     
-     - method(``str``) NMF factorization method (see: nimfa documentation for alternatives)
-     - init(``str``) NMF initialization method (see: scikit-learn and nimfa for alternatives)
-     - c(``int``) number of histone codes
-     - params(``str``) algorithm specific parameters
+    The procedure creates two files for the two matrices "*{parameters}.arr" (optionally) and "*{parameters}.epi".
+    
+      - bed(``path``) Genomic regions in the BED6+ file format.
+      - abams(``path+``) Sample A sequencing data in sorted BAM files (requiers BAI index files).
+      - bbams(``path+``) Sample B sequencing data in sorted BAM files (requiers BAI index files).
+      - step(``int``) Step size (in bp) for coverage calculation with regions.
+      - odn(``path``) Output directory name.
+      - runid(``str``) Run id to prefix all output files.
+      - shorten(``bool``) Truncate BAM file names to unambigous strings.
+      - par(``int``) Number of parallel processes for BAM extraction.
+      - pairsca(``str``) paired samples scaling method, one of: deseq
+      - colsca(``str``) Column rescaling method, one of: sig95, whiten.
+      - method(``str``) currently only pgnmf from scikit-learn is supprted.
+      - init(``str``) NMF initialization method (see: scikit-learn documentation for alternatives).
+      - c(``int``) Number of expected histone codes (factorization rank).
+      - params(``str``) Specific parameters for the sklearn PGNMF algorithm (see: scikit-learn for options).
 
     """
     chk_exit(c is None, "error: c (number of codes) not specified")
@@ -580,10 +598,8 @@ def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"),
     ablvl = scale_pairs(abcnt, pairsca) # adjust for readdepth
     gllvl = scale_differential(ablvl) # from two sample to gain loss
     glsca = scale_features(gllvl, colsca)
-    if method in ("pgnmf",):
-        codes = code_sklearn(glsca, method, init, c, params)
-    else:
-        codes = code_nimfa(glsca, method, init, c, params)
+    codes = code_sklearn(glsca, method, init, c, params)
+    return codes
 
 @task
 def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=None, shorten=False, par=4, 
@@ -602,24 +618,24 @@ def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=N
     best left as defaults. The "c" parameter has no default as it depends both on the number of input bam files, 
     redundancy (correlation) of the assayed epigenetic marks and the biological complexity of the genomic regions 
     (bed files). Typically a value between 4-10 gives interpretable results, but please see our publication for 
-    some properties of NMF applied to epigenomic data.
+    some recommendations and properties of NMF applied to epigenomic data.
 
-    This is a wrapper for the following chain of tasks, each task saves generated data as intermediate files in 
-    a sigle "run" directory:
+    This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate files 
+    in a sigle "run" directory:
     
-      1. extract_absolute - extracts mark lavels "*lvl.arr" for all mark (bam file) region (bed file) combinations.
-      2. scale_features - scales features (columns) within each "*lvl.arr" array.
-      3. multi_code_sklearn - learn discriminatory codes
+      1. extract_absolute - Extracts mark lavels "*lvl.arr" for all mark (bam file) region (bed file) combinations.
+      2. scale_features - Scales features (columns) within each "*lvl.arr" array.
+      3. multi_code_sklearn - Learn discriminatory epigenetic codes.
 
     The procedure creates two files for the two matrices "*{parameters}.arr" (optionally) and "*{parameters}.epi".
     The files can be used as input to the logistic regression classifier task ``logistic_classifier``.
 
-     - beds(``path+``) two BED6+ files of different genomic sites
-     - bams(``path+``) sequencing data in sorted BAM files requiers BAI index files
-     - odn(``path``) output directory name
-     - runid(``str``) run id to prefix all output files
-     - shorten truncate BAM file names to unambigous strings
-     - par(``int``) number of parallel processes for bam extraction
+     - beds(``path+``) Two BED6+ files of different sets of genomic sites.
+     - bams(``path+``) Sequencing data in sorted BAM files (requiers BAI index files).
+     - odn(``path``) Output directory name.
+     - runid(``str``) Run id to prefix all output files.
+     - shorten(``bool``) truncate BAM file names to unambigous strings.
+     - par(``int``) Number of parallel processes for BAM extraction.
      - colsca(``str``) Column rescaling method currently one of: sig95, whiten.
      - init(``str``) NMF initialization method (see: scikit-learn for options).
      - c(``int``) Number of expected histone codes (factorization rank).
@@ -658,7 +674,6 @@ if __name__ == "__main__":
 #     ofn = odn / (base + ".arr")
 #     # write 
 #     write_values(ofn, W, W.shape[1])
-
 
 # def load_epi(epi):
 #     """
