@@ -3,7 +3,7 @@ EpiCODE
 
 epicode.py - Discovers "epigenetic codes" within ChIP-seq datasets.
 
-```bash
+```
 $ epicode.py absolute -bed [BED6+ file] -bams [BAM files] [options]
 $ epicode.py differential -bed [BED6+ file] -abams [BAM files] -bbams [BAM files] [options]
 $ epicode.py discriminatory -beds [BED6+ files] -bams [BAM files] [options]
@@ -11,7 +11,7 @@ $ epicode.py discriminatory -beds [BED6+ files] -bams [BAM files] [options]
 
 To get help specific to these three methods see:
 
-```bash
+```
 $ epicode.py {absolute, differential, discriminatory} --help
 ```
 
@@ -59,7 +59,7 @@ EpiCODE tasks
 The three provided high-level modes are wrappers around tasks with more fine-grained options.
 A list of all the available tasks can be seen by:
 
-```bash
+```
 $ epicode.py --help
 ...
 | extract_absolute      Processes multiple bam files in "absolute" mode.
@@ -240,7 +240,7 @@ $ easy_install-2.7 epicode
 
 If the above command is not found first try:
 
-```bash
+```
 $ easy_install epicode
 ```
 
@@ -255,14 +255,14 @@ version of ```Python``` and ```easy_install``` (```setuptools```):
 
 #### Python and Setuptools
 
-```bash
+```
 $ python2 --version
 | Python 2.7.5
 ```
 
 Verify that ```easy_install``` can be found:
 
-```bash
+```
 $ which easy_install
 | .../bin/easy_install
 ```
@@ -273,19 +273,19 @@ later on.
 
 Arch:
 
-```bash
+```
 $ pacman -S python2-setuptools
 ```
 
 Fedora: 
 
-```bash
+```
 $ yum install python-setuptools python-setuptools-devel
 ```
 
 Ubuntu:
 
-```bash
+```
 $ sudo apt-get install python-setuptools python-dev
 ```
 
@@ -303,19 +303,19 @@ other relatively recent releases.
 
 For Arch linux:
 
-```bash
+```
 $ pacman -S extra/python2-numpy community/python2-scipy 
 ```
 
 Fedora: 
 
-```bash
+```
 $ yum install numpy scipy
 ```
 
 Ubuntu:
 
-```bash
+```
 $ sudo apt-get install python-numpy python-scipy
 ```
 
@@ -325,13 +325,13 @@ http://www.scipy.org/install.html
 
 Next, we will install ```pysam```, ```scikit-learn```, and ```moke``` from PyPI:
 
-```bash
+```
 $ easy_install pysam==0.7.5 scikit-learn==0.14.1 moke==1.1.5
 ```
 
 If all the commands returned correctly you should be able to start ```python```:
 
-```bash
+```
 $ python2
 ```
 
@@ -347,6 +347,6 @@ And issue the following statements:
 
 Now you are ready to install epicode
 
-```bash
+```
 $ easy_install epicode
 ```
