@@ -30,8 +30,8 @@ def dsig(a, lq, loc, uq):
     """(internal) Double sigmoid function to normalize features (columns).
     see:
 
-    Jain, A., Nandakumar, K. & Ross, A. Score normalization in multimodal biometric systems. 
-    Pattern Recognition 38, 2270–2285 (2005).
+    Jain, A., Nandakumar, K. and Ross, A. Score normalization in multimodal biometric systems. 
+    Pattern Recognition 38, 2270-2285 (2005).
 
     """
     a = np.asanyarray(a, dtype="f")
@@ -612,6 +612,7 @@ def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=N
       3. multi_code_sklearn - learn discriminatory codes
 
     The procedure creates two files for the two matrices "*{parameters}.arr" (optionally) and "*{parameters}.epi".
+    The files can be used as input to the logistic regression classifier task ``logistic_classifier``.
 
      - beds(``path+``) two BED6+ files of different genomic sites
      - bams(``path+``) sequencing data in sorted BAM files requiers BAI index files

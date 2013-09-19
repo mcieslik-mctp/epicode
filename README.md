@@ -50,13 +50,19 @@ Each of the provided modes corresponds to a specific subcommand of epicode.
 As input epicode expects at least one BED6+ file of reference genomic regions
 (-bed or -beds) and at least one set of aligned sequence reads in coordinate
 sorted BAM files. Epicode is not filtering duplicate reads, please run
-``samtools dedup`` to create deduplicated input files.
+``samtools dedup`` to create deduplicated input files if this is desired.
+
 
 
 EpiCODE tasks
 -------------
 
-The three provided high-level modes are wrappers around tasks with 
+The three provided high-level modes are wrappers around tasks with more fine-grained
+
+
+
+Configuration and Logging
+-------------------------
 
 
 
