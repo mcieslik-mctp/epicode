@@ -201,13 +201,7 @@ def process_bam_absolute(bams, regs, shorten, par):
 
 @task
 def extract_absolute(bed=None, bams=None, odn=None, runid=None, shorten=False, par=None):
-    """Processes multiple bam files in "absolute" mode. It estimates enrichment levels for
-    each "mark" at each input genomic regions from the BED6+ file. Read count extraction 
-    can be done in parallel (per-chromosome parallelism). The output is saved into the "odn"
-    directory with "runid" prefix (optional) and has an extension of "{runid}_lvl.arr". 
-    If shorten is enabled "--shorten" the algorithm will try to shorten the file names when
-    producing column names by removing common substrings. In the case of erros see
-    the log messages. Program aborts if output files are present.
+    """Processes multiple bam files in "absolute" mode. 
 
      - bed(``path``) input genomic regions in the BED6+ file format 
      - bams(``path+``) input sequencing data in sorted BAM files requiers BAI index files
@@ -302,15 +296,8 @@ def process_bam_differential(abams, bbams, regs, shorten, par, step):
     return (names, counts)
 
 @task
-def extract_differential(bed=None, abams=None, bbams=None, odn=None, runid=None, shorten=False, step=None, par=None):
-    """Processes multiple bam files in "differential" mode. It estimates counts for each bam file at
-    each input genomic regions from the BED6+ file. Read count extraction can be done in parallel 
-    (per-chromosome parallelism). The output is saved into the "odn" directory with "runid" prefix 
-    (optional) and has an extension of "{runid}_cnt.arr". If shorten is enabled "--shorten" the 
-    algorithm will try to shorten the file names when producing column names by removing common substrings. 
-    Column names receive a ":a" or ":b" suffix when they are from tha A-list or B-list, respectively.
-    In the case of erros see the log messages. Program aborts if output files are present. Output array 
-    is proper input for the "scale_features" sub-command.
+def extract_diff(bed=None, abams=None, bbams=None, odn=None, runid=None, shorten=False, step=None, par=None):
+    """Processes multiple bam files in "differential" mode. 
 
      - bed(``path``) input genomic regions in the BED6+ file format 
      - abams(``path+``) sample A sequencing data in sorted BAM files requiers BAI index files
@@ -351,7 +338,7 @@ def extract_differential(bed=None, abams=None, bbams=None, odn=None, runid=None,
 
 @task
 def scale_pairs(arr, scalgo="deseq"):
-    """(internal) Scales observed counts of paired samples.
+    """Scales observed paired columns of read-overlap counts.
 
      - arr(``path``) input array regions x (markX in A, markX in B, markY in A, markY in B ...) 
      - scalgo(``str``) scaling algorithm
@@ -372,12 +359,8 @@ def scale_pairs(arr, scalgo="deseq"):
     return ofn
 
 @task
-def scale_differential(arr):
-    """Calculates differential features from paired counts array (paired samples x features). 
-    A proper input for this function is obtained by the ``extract_differential`` sub-command.
-    Matches pairs by an ":a" and ":b" suffix. Creates a new file with "*_lvl.arr" suffix in 
-    the same directory as the input. The gain and loss columns are suffixed ":g" and ":l", 
-    respectievely. 
+def scale_diff(arr):
+    """Calculates differential features from paired counts array (paired loci x features). 
 
      - arr(``path``) input array regions x marks
 
@@ -425,10 +408,8 @@ def scale_differential(arr):
 
 @task
 def scale_features(arr, scalgo=None):
-    """Scales features of any input array (loci x features) using any of the supported 
-    algorithms. See: ``scarr``. Creates new array file with scaled columns scaling 
-    algorithm name is included as suffix.
-
+    """Scales features of any input array (loci x features) using any of the supported algorithms. 
+    
      - arr(``path``) input array regions x features (mark levels or mark gain loss)
      - scalgo(``str``) scaling algorithm: sig95, whiten
 
@@ -448,15 +429,11 @@ def scale_features(arr, scalgo=None):
 
 @task
 def code_sklearn(arr, method=None, init=None, c=None, params=None, transform=True):
-    """Non-negative matrix factorization using scikits-learn. Creates two new files:
-    with ".epi" and ".arr" suffixes (only with "--transform") that include algorithm 
-    parameters in their names in the same directory as the input. Method and remaining
-    arguments are currently ignored from the command line.
+    """Non-negative matrix factorization using scikits-learn. 
 
      - arr(``path``) input array (loci x scaled features) see: ``scale_features``.
      - c(``int``) number of expected histone codes (factorization rank).
-     - init(``str``) matrix factorization initialization method (see: \
-      ``sklearn.decomposition.NMF``).
+     - init(``str``) matrix factorization initialization method.
 
     """
     chk_exit(*inp_file(path(arr)))
@@ -476,16 +453,12 @@ def code_sklearn(arr, method=None, init=None, c=None, params=None, transform=Tru
 
 @task
 def multi_code_sklearn(arrs, base=None, method=None, init=None, c=None, params=None):
-    """Non-negative matrix factorization using scikits-learn. Creates two new files: 
-    with ".epi" and ".arr" suffixes (only with "--transform") that include algorithm 
-    parameters in their names in the same directory as the input. Method and remaining 
-    arguments are currently ignored from the command line.
+    """Multi-array Non-negative matrix factorization using scikits-learn. 
 
      - arr(``path``) input arrays (loci x scaled features) see: ``scale_features``.
      - base(``str``) common basename for the output.
      - c(``int``) number of expected histone codes (factorization rank).
-     - init(``str``) matrix factorization initialization method (see: 
-       ``sklearn.decomposition.NMF``.
+     - init(``str``) matrix factorization initialization method.
 
     """
     kwargs = parse_params(params, {"max_iter":1000})
@@ -516,25 +489,9 @@ def multi_code_sklearn(arrs, base=None, method=None, init=None, c=None, params=N
 @task
 def absolute(bed=None, bams=None, odn=path("absolute_out"), runid=None, shorten=False, par=4, 
              colsca="sig95", method="pgnmf", init="nndsvd", c=None, params=None):
-    """Discover absolute "epigenetic codes" from levels of epigenetic marks in a single experimental 
-    condition. Designed to work on epigenetic marks mapped in one condition and quantified within one type of 
-    loci. The sites should be provided as a BED6+ file e.g. a promoter file or an enhancer file. The 
-    sequencing data should be provided as coordinate sorted bam files (e.g. using samtools or novosort). 
-    The algorithm results (files) are saved into the "odn" directory (default "absolute_out" and prefixed 
-    with "runid", which defaults to an automatically generated and likely unique integer. Column names 
-    within all output files that are data matrices are generated from input BAM filenames and are optionally 
-    shortened ("--shorten" option) by removing redundant substrings. 
-
-    This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate 
-    files in a sigle "run" directory:
-
-      1. extract_absolute - Extracts counts of reads overlapping genomic regions and 
-         normalizes by region length.
-      2. scale_features - Scales features (columns) within each "*lvl.arr" array. 
-      2. code_sklearn - Learn discriminatory epigenetic codes.
-
-    The procedure creates two files for the two matrices "*{parameters}.arr" (optionally) and "*{parameters}.epi".
-
+    """Absolute "epigenetic codes" from levels of epigenetic marks in a single experimental 
+    condition and in a single set of sites.
+ 
       - bed(``path``) Genomic regions in the BED6+ file format.
       - bams(``path+``) Sequencing data in coordinated sorted BAM files (requiers BAI index files).
       - odn(``path``) Output directory name.
@@ -557,26 +514,9 @@ def absolute(bed=None, bams=None, odn=path("absolute_out"), runid=None, shorten=
 @task
 def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"), runid=None, shorten=False, step=100, 
                  par=4, pairsca="deseq", colsca="sig95", method="pgnmf", init="nndsvd", c=None, params=None):
-    """Discovers differential epigenetic "codes" from "gain"-"loss" changes in levels of epigenetic marks 
-    from two experimental conditions. Designed to work on epigenetic marks mapped in two conditions (A and B) 
-    quantified in one type of locus. The sites should be provided as a BED6+ file e.g. a promoter file or an 
-    enhancer  file. The sequencing data should be provided as coordinate sorted bam files (e.g. using samtools 
-    or novosort). The algorithm results (files) are saved into the "odn" directory (default "differential_out" 
-    and prefixed with "runid", which defaults to an automatically generated and likely unique integer. Column 
-    names within all output files that are data matrices are generated from input BAM filenames and are 
-    optionally shortened ("--shorten" option) by removing redundant substrings. 
-
-    This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate 
-    files in a sigle "run" directory:
-    
-      1. extract_differential - Extracts paired counts within genomic regions in "step" resultion.
-      2. scale_pairs - Normalizes counts paired samples for sequencing depth.
-      3. scale_differential - Converts scaled absolute counts to "gain-loss" levels.
-      4. scale_features - Scales features (columns) within each "*lvl.arr" array.
-      5. code_sklearn - Learn absolute epigenetic codes.
-    
-    The procedure creates two files for the two matrices "*{parameters}.arr" (optionally) and "*{parameters}.epi".
-    
+    """Differential "epigenetic codes" from "gain-loss" changes in levels of epigenetic marks from two 
+    experimental conditions in single set of sites. 
+   
       - bed(``path``) Genomic regions in the BED6+ file format.
       - abams(``path+``) Sample A sequencing data in sorted BAM files (requiers BAI index files).
       - bbams(``path+``) Sample B sequencing data in sorted BAM files (requiers BAI index files).
@@ -594,9 +534,9 @@ def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"),
 
     """
     chk_exit(c is None, "error: c (number of codes) not specified")
-    abcnt = extract_differential(bed, abams, bbams, odn, runid, shorten, step, par)
+    abcnt = extract_diff(bed, abams, bbams, odn, runid, shorten, step, par)
     ablvl = scale_pairs(abcnt, pairsca) # adjust for readdepth
-    gllvl = scale_differential(ablvl) # from two sample to gain loss
+    gllvl = scale_diff(ablvl) # from two sample to gain loss
     glsca = scale_features(gllvl, colsca)
     codes = code_sklearn(glsca, method, init, c, params)
     return codes
@@ -604,31 +544,8 @@ def differential(bed=None, abams=None, bbams=None ,odn=path("differential_out"),
 @task
 def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=None, shorten=False, par=4, 
              colsca="sig95", init="nndsvd", c=None, params=None):
-    """Discovers discriminatory "epigenetic codes" that differentiate between two (or more, but this is untested) 
-    types of sites. Designed to work on epigenetic marks mapped in a single condition, quantified within two 
-    (or more) types of loci. The types of sites are provided as BED6+ files e.g. a promoter file and an enhancer 
-    file. The sequencing data should be provided as coordinate sorted bam files (e.g. using samtools or novosort). 
-    The algorithm results (files) are saved into the "odn" directory and prefixed with "runid", which defaults to 
-    "discriminatory". Column names within all output files that are data matrices are generated from input BAM 
-    filenames and are optionally shortened ("--shorten" option) by removing redundant substrings. 
-
-    The algorithm takes three important parameters "c" the number of expected histone codes and also rank of the 
-    factored matrices, "colsca" the algorithm used to scale the levels (columns) of the final input matrices
-    to the NMF algorithm, and "init" the algorithm used to initialize matrices. The two latter parameters are
-    best left as defaults. The "c" parameter has no default as it depends both on the number of input bam files, 
-    redundancy (correlation) of the assayed epigenetic marks and the biological complexity of the genomic regions 
-    (bed files). Typically a value between 4-10 gives interpretable results, but please see our publication for 
-    some recommendations and properties of NMF applied to epigenomic data.
-
-    This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate files 
-    in a sigle "run" directory:
-    
-      1. extract_absolute - Extracts mark lavels "*lvl.arr" for all mark (bam file) region (bed file) combinations.
-      2. scale_features - Scales features (columns) within each "*lvl.arr" array.
-      3. multi_code_sklearn - Learn discriminatory epigenetic codes.
-
-    The procedure creates two files for the two matrices "*{parameters}.arr" (optionally) and "*{parameters}.epi".
-    The files can be used as input to the logistic regression classifier task ``logistic_classifier``.
+    """Discriminatory "epigenetic codes" that emphasize epigenetic differences between two (or more [experimental]) 
+    sets of sites.
 
      - beds(``path+``) Two BED6+ files of different sets of genomic sites.
      - bams(``path+``) Sequencing data in sorted BAM files (requiers BAI index files).

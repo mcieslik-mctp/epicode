@@ -1,12 +1,12 @@
 EpiCODE
 =======
 
-epicode.py - discover epigenetic "codes" from ChIP-seq data.
+epicode.py - Discovers "epigenetic codes" within ChIP-seq datasets.
 
 ```bash
-epicode.py absolute -bed [BED6+ file] -bams [BAM files] [options]
-epicode.py differential -bed [BED6+ file] -abams [BAM files] -bbams [BAM files] [options]
-epicode.py discriminatory -beds [BED6+ files] -bams [BAM files] [options]
+$ epicode.py absolute -bed [BED6+ file] -bams [BAM files] [options]
+$ epicode.py differential -bed [BED6+ file] -abams [BAM files] -bbams [BAM files] [options]
+$ epicode.py discriminatory -beds [BED6+ files] -bams [BAM files] [options]
 ```
 
 To get help specific to these three methods see:
@@ -21,10 +21,10 @@ that tend to occur in (at least) sub-portions of the data. Alternatively
 it identifies combinations of marks that change coordinately i.e. are
 "gained" or "lost" frequently at the same time.
 
-The algorithm provides three modes "absolute", "discriminatory", and
-"differential". The first two modes identify co-occurring marks within
-one or many sets of genomic losi, respectively. The "differential" mode
-attempts to find patterns of coordinated mark changes. In "discriminatory"
+The algorithm provides three modes ```absolute```, ```discriminatory```, and
+```differential```. The first two modes identify co-occurring marks within
+one or many sets of genomic losi, respectively. The ```differential``` mode
+attempts to find patterns of coordinated mark changes. In ```discriminatory```
 mode two (or more) genomic loci are differentiated based their associated
 patterns.
 
@@ -34,15 +34,15 @@ EpiCODE modes
 
 Each of the provided modes corresponds to a specific subcommand of epicode.
 
-* "absolute" for experiments with multiple histone modifications or 
+* ```absolute``` for experiments with multiple histone modifications or 
   epigenetics marks mapped in a single condition. Epicode finds patterns
   (epigenetic codes) of frequently co-occurring marks.
 
-* "differential" for experiments with the same marks mapped in two conditions.
+* ```differential``` for experiments with the same marks mapped in two conditions.
   Epicode finds patterns of coordinated mark changes i.e. subsets of marks
   that are often "gained" or "lost" at the same time.
 
-* "discriminatory" for experiments where one is interested in the epigenetic
+* ```discriminatory``` for experiments where one is interested in the epigenetic
   patterns that distinguish different sets of (preferably non-overlapping) genomic
   loci. Multiple histone modifications are mapped in a single condition and
   quantified for two two or more (experimental) sets of loci.
@@ -50,15 +50,176 @@ Each of the provided modes corresponds to a specific subcommand of epicode.
 As input epicode expects at least one BED6+ file of reference genomic regions
 (-bed or -beds) and at least one set of aligned sequence reads in coordinate
 sorted BAM files. Epicode is not filtering duplicate reads, please run
-``samtools dedup`` to create deduplicated input files if this is desired.
-
+```samtools dedup``` to create deduplicated input files if this is desired.
 
 
 EpiCODE tasks
 -------------
 
-The three provided high-level modes are wrappers around tasks with more fine-grained
+The three provided high-level modes are wrappers around tasks with more fine-grained options.
+A list of all the available tasks can be seen by:
 
+```bash
+$ epicode.py --help
+...
+| extract_absolute      Processes multiple bam files in "absolute" mode.
+|
+| discriminatory        Discriminatory "epigenetic codes" that emphasize
+|                       epigenetic differences between two (or more
+|                       [experimental]) sets of sites.
+|
+| scale_features        Scales features of any input array (loci x features)
+|                       using any of the supported algorithms.
+|
+| extract_diff          Processes multiple bam files in "differential" mode.
+|
+| differential          Differential "epigenetic codes" from "gain-loss"
+|                       changes in levels of epigenetic marks from two
+|                       experimental conditions in single set of sites.
+|
+| scale_pairs           Scales observed paired columns of read-overlap counts.
+|
+| code_sklearn          Non-negative matrix factorization using scikits-learn.
+|
+| multi_code_sklearn    Multi-array Non-negative matrix factorization using
+|                       scikits-learn.
+|
+| scale_diff            Calculates differential features from paired counts
+|                       array (paired loci x features).
+|
+| absolute              Absolute "epigenetic codes" from levels of epigenetic
+|                       marks in a single experimental condition and in a
+|                       single set of sites.
+...
+``` 
+
+
+### High-level interface
+
+#### Absolute mode: ```absolute```
+
+Designed to work on epigenetic marks mapped in one condition and quantified within one type of 
+loci. The sites should be provided as a BED6+ file e.g. a promoter file or an enhancer file. The 
+sequencing data should be provided as coordinate sorted bam files (e.g. using samtools or novosort). 
+The algorithm results (files) are saved into the ```odn``` directory (default ```absolute_out``` and
+prefixed with ```runid```, which defaults to an automatically generated and likely unique integer. Column
+names within all output files that are data matrices are generated from input BAM filenames and are optionally 
+shortened (```--shorten``` option) by removing redundant substrings. 
+
+This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate 
+files in a sigle ```run``` directory:
+
+  1. extract_absolute - Extracts counts of reads overlapping genomic regions and 
+     normalizes by region length.
+  2. scale_features - Scales features (columns) within each ```lvl.arr``` array. 
+  3. code_sklearn - Learn discriminatory epigenetic codes.
+
+The procedure creates two files for the two matrices ```{parameters}.arr``` (optionally) and
+```{parameters}.epi```.
+
+
+#### Differential mode: ```differential```
+
+Designed to work on epigenetic marks mapped in two conditions (A and B) quantified in one type of locus.
+The sites should be provided as a BED6+ file e.g. a promoter file or an enhancer  file. The sequencing
+data should be provided as coordinate sorted bam files (e.g. using samtools or novosort). The algorithm
+results (files) are saved into the ```odn``` directory (default ```differential_out``` and prefixed with
+```runid```, which defaults to an automatically generated and likely unique integer. Column names within all
+output files that are data matrices are generated from input BAM filenames and are optionally shortened
+(```--shorten``` option) by removing redundant substrings. 
+
+This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate 
+files in a sigle ```run``` directory:
+
+  1. extract_differential - Extracts paired counts within genomic regions in ```step``` resultion.
+  2. scale_pairs - Normalizes counts paired samples for sequencing depth.
+  3. scale_differential - Converts scaled absolute counts to ```gain-loss``` levels.
+  4. scale_features - Scales features (columns) within each ```{parameters}lvl.arr``` array.
+  5. code_sklearn - Learn absolute epigenetic codes.
+    
+The procedure creates two files for the two matrices ```{parameters}.arr``` (optionally) and
+```{parameters}.epi```.
+ 
+
+#### Discriminatory mode: ```discriminatory```
+
+Designed to work on epigenetic marks mapped in a single condition, quantified within two 
+(or more) types of loci. The types of sites are provided as BED6+ files e.g. a promoter file and an enhancer 
+file. The sequencing data should be provided as coordinate sorted bam files (e.g. using samtools or novosort). 
+The algorithm results (files) are saved into the ```odn``` directory and prefixed with ```runid```, which defaults
+to ```discriminatory```. Column names within all output files that are data matrices are generated from input BAM 
+filenames and are optionally shortened (```--shorten``` option) by removing redundant substrings. 
+
+The algorithm takes three important parameters ```c``` the number of expected histone codes and also rank of the 
+factored matrices, ```colsca``` the algorithm used to scale the levels (columns) of the final input matrices
+to the NMF algorithm, and ```init``` the algorithm used to initialize matrices. The two latter parameters are
+best left as defaults. The ```c``` parameter has no default as it depends both on the number of input bam files, 
+redundancy (correlation) of the assayed epigenetic marks and the biological complexity of the genomic regions 
+(bed files). Typically a value between 4-10 gives interpretable results, but please see our publication for 
+some recommendations and properties of NMF applied to epigenomic data.
+
+This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate files 
+in a sigle ```runid``` directory:
+    
+  1. extract_absolute - Extracts mark lavels ```*lvl.arr``` for all marks (BAM files) and regions (BED files)
+     combinations.
+  2. scale_features - Scales features (columns) within each ```*lvl.arr``` array.
+  3. multi_code_sklearn - Learn discriminatory epigenetic codes.
+  
+The procedure creates two files for the two matrices ```{parameters}.arr``` (optionally) and
+```{parameters}.epi```. The files can be used as input to the logistic regression classifier task
+``logistic_classifier``.
+
+### Low-level interface
+
+
+#### ```code_sklearn```
+
+NMF factorization of asingle array. Creates two new files with ```.epi``` and ```.arr``` suffixes (only with
+```--transform```) that include algorithm parameters in their names in the same directory as the input.
+Method and remaining arguments are currently ignored from the command line. (see: ``sklearn.decomposition.NMF``).
+
+#### ```multi_code_sklearn```
+
+NMF factorization of multiple arrays. Creates two new files with ```.epi``` and ```.arr``` suffixes (only with
+```--transform```) that include algorithm parameters in their names in the same directory as the input.
+Method and remaining arguments are currently ignored from the command line. (see: ``sklearn.decomposition.NMF``).
+
+#### ```scale_features```
+
+Scales features of any input array (loci x features) using any of the supported algorithms. Creates new
+array file with scaled columns scaling algorithm name is included as suffix. See: ``scarr``function
+documentation for details.
+
+#### ```scale_pairs```
+
+Scales observed paired columns of read-overlap counts (paired samples). Currently only the ```deseq``` algorithm is
+implemented.
+
+#### ```scale_diff```
+
+Calculates differential features from paired counts array (paired loci x features). A proper input for
+this function is obtained by the ``extract_differential`` sub-command. Matches pairs by an ```:a``` and ```:b```
+suffix. Creates a new file with ```_lvl.arr``` suffix in the same directory as the input. The gain and
+loss columns are suffixed ```:g``` and ```:l```, respectievely. 
+
+#### ```extract_absolute```
+
+It estimates enrichment levels for each mark at each input genomic regions from the BED6+ file. Read count
+extraction can be done in parallel (per-chromosome parallelism). The output is saved into the ```odn``` directory
+with ```runid``` prefix (optional) and has an extension of ```{runid}_lvl.arr```. If shorten is enabled \
+```--shorten```the algorithm will try to shorten the file names when producing column names by removing common
+substrings. In the case of erros see the log messages. Program aborts if output files are present.
+
+#### ```extract_differential```
+
+For each bam file it counts the number reads overlapping each genomic region from the BED6+ file.
+Read count extraction can be done in parallel (per-chromosome parallelism). The output is saved into the
+```odn``` directory with ```runid``` prefix (optional) and has an extension of ```{runid}_cnt.arr```. If shorten
+is enabled ```--shorten``` the algorithm will try to shorten the file names when producing column names by
+removing common substrings. Column names receive a ```:a``` or ```:b``` suffix when they are from tha A-list or
+B-list, respectively. In the case of erros see the log messages. Program aborts if output files are present.
+Output array is proper input for the ```scale_features``` task.
 
 
 Configuration and Logging
