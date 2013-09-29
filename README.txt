@@ -1,1 +1,1 @@
-see: README.md
+please see: README.md

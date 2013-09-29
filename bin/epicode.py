@@ -617,8 +617,18 @@ def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=N
 
 if __name__ == "__main__":
     DOC = \
-    """
-    """
+"""epicode.py - Discovers "epigenetic codes" within ChIP-seq datasets. The 
+goal of epicode is to discover patterns of histone modifications from
+aligned sequence data. Epicode looks for combinations (subsets) of marks
+that tend to occur in (at least) sub-portions of the data. Alternatively
+it identifies combinations of marks that change coordinately i.e. are
+"gained" or "lost" frequently at the same time. The algorithm provides three 
+modes "absolute", "discriminatory", and "differential". The first two modes 
+identify co-occurring marks within one or many sets of genomic losi, 
+respectively. The "differential" mode attempts to find patterns of 
+coordinated mark changes. In "discriminatory" mode two (or more) genomic 
+loci are differentiated based their associated patterns.
+"""
     task(DOC)
 
 # @task

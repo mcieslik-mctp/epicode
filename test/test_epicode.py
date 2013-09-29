@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 import os
 import sys
 import unittest
@@ -17,12 +18,12 @@ from epicode import * # this is bin/epicode.py not epicode/__init__.py
 class EpicodeTest(unittest.TestCase):
     
     def test_loadarr(self):
-        k,a = load_arr(os.path.join(pkg_dir, "epicode", "data", "test_ab_cnt.arr"))
+        k,a = load_arr(os.path.join(pkg_dir, "data", "test_ab_cnt.arr"))
         assert k[0] == "dnase:a"
         aequal(a[0], [0.,2.,1.,2.,0.,0.,0.,12.,0.,2.,0.,2.,0.,0.,0.,0.,0.,0.,0.,1.,1.,1.,1.,0.])
 
     def test_loadarr(self):
-        k,a = load_epi(os.path.join(pkg_dir, "epicode", "data", "absolute_codes.epi"))
+        k,a = load_epi(os.path.join(pkg_dir, "data", "absolute_codes.epi"))
         assert k[0] == "h2az"
         equal(a[0][3], 1.30686752)
 

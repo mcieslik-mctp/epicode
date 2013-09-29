@@ -119,10 +119,10 @@ The procedure creates two files for the two matrices ```{parameters}.arr``` (opt
 Example command line:
 
 ```
-epicode.py absolute -c 6 -par 8 -bed <<repo dir>>/data/h1esc_prom_5000.bed -bams <<bam dir>>/*.bam
+epicode.py absolute -c 6 -par 4 -bed <<repo dir>>/data/h1esc_prom_5000.bed -bams <<bam dir>>/*.bam
 ```
 
-here ```<<repo directory>>``` is where you checked out the git reposity and <<bam dir>> is a directory with bam files. The parameters ```-c 6``` and ```-par 8``` mean that six codes in "absolute" mode will be learned and the bam file processing will happen using eight cores.
+Here ```<<repo dir>>``` is where you checked out the git reposity and ```<<bam dir>>``` is a directory with bam files. The parameters ```-c 6``` and ```-par 4``` mean that six codes in "absolute" mode will be learned and the bam file processing will happen using four cores.
 
 
 #### Differential mode: ```differential```
@@ -150,8 +150,10 @@ The procedure creates two files for the two matrices ```{parameters}.arr``` (opt
 Example command line:
 
 ```
-epicode.py differential
+epicode.py differential -c 8 -par 4 <<repo dir>>data/hsmm_prom_1000.bed -abams <<A bams dir>>/*.bam -bams <B bams dir>>/*.bam
 ```
+Here ```<<repo dir>>``` is where you checked out the git reposity and ```<<bam dir>>``` is a directory with bam files. The parameters ```-c 6``` and ```-par 4``` mean that six codes in "differential" mode will be learned and the bam file processing will happen using four cores.
+
 
 #### Discriminatory mode: ```discriminatory```
 
@@ -183,8 +185,11 @@ The procedure creates two files for the two matrices ```{parameters}.arr``` (opt
 ``logistic_classifier``.
 
 ```
-epicode.py discriminatory
+epicode.py discriminatory -par 4 -beds <<repo dir>>data/pol2_1000_e25_*.bed -c 7 -bams <<bam dir>>/*.bam 
 ```
+
+Here ```<<repo dir>>``` is where you checked out the git reposity and ```<<bam dir>>``` is a directory with bam files. The parameters ```-c 7``` and ```-par 4``` mean that seven codes in "differential" mode will be learned and the bam file processing will happen using four cores.
+
 
 ### Low-level interface
 

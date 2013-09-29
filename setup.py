@@ -5,7 +5,7 @@ from glob import glob
 def main():
     setup(name = "epicode",
           url="https://github.com/i000/epicode",
-          version = "1.0.0",
+          version = "1.0.1",
           author="Marcin Cieslik",
           author_email="marcin.cieslik@gmail.com",
           packages = find_packages(),
