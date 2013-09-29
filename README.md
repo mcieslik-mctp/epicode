@@ -114,8 +114,16 @@ files in a sigle ```run``` directory:
   2. scale_features - Scales features (columns) within each ```lvl.arr``` array. 
   3. code_sklearn - Learn discriminatory epigenetic codes.
 
-The procedure creates two files for the two matrices ```{parameters}.arr``` (optionally) and
-```{parameters}.epi```.
+The procedure creates two files for the two matrices ```{parameters}.arr``` (optionally) and ```{parameters}.epi```.
+
+Example command line:
+
+```
+epicode.py absolute -c 6 -par 8 -bed <<repo dir>>/data/h1esc_prom_5000.bed -bams <<bam dir>>/*.bam
+```
+
+here ```<<repo directory>>``` is where you checked out the git reposity and <<bam dir>> is a directory with bam files. The parameters ```-c 6``` and ```-par 8``` mean that six codes in "absolute" mode will be learned and the bam file processing will happen using eight cores.
+
 
 
 #### Differential mode: ```differential```
@@ -211,6 +219,11 @@ with ```runid``` prefix (optional) and has an extension of ```{runid}_lvl.arr```
 ```--shorten```the algorithm will try to shorten the file names when producing column names by removing common
 substrings. In the case of erros see the log messages. Program aborts if output files are present.
 
+Example command-line:
+
+```epicode.py extract_absolute -bed test.bed -bams directory_with_bams/*bam -odn test_extract -par 8```
+
+
 #### ```extract_differential```
 
 For each bam file it counts the number reads overlapping each genomic region from the BED6+ file.
@@ -222,8 +235,35 @@ B-list, respectively. In the case of erros see the log messages. Program aborts 
 Output array is proper input for the ```scale_features``` task.
 
 
-Configuration and Logging
--------------------------
+
+Plotting
+--------
+
+Two scripts are provided to facilitate plotting. They can be found in the ```epicode/scripts``` directory. Each
+script take an epigenetic code file ```.epi``` and the name of an output graphics file supported by ggplot e.g.
+```png```, ```pdf``` etc.
+
+Example usage:
+
+```
+$ Rscript epicode/data/absolute_codes.epi absolute_codes.png
+```
+
+```
+$ Rscript epicode/data/differential_codes.epi differential_codes.png
+```
+
+
+Logging Configuration 
+---------------------
+
+Epicode.py can be configured to use an external configuration file and to log to an arbitrary file stream
+
+See ```moke``` help for details:
+
+```
+$ epicode.py --help
+```
 
 
 
