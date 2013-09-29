@@ -125,7 +125,6 @@ epicode.py absolute -c 6 -par 8 -bed <<repo dir>>/data/h1esc_prom_5000.bed -bams
 here ```<<repo directory>>``` is where you checked out the git reposity and <<bam dir>> is a directory with bam files. The parameters ```-c 6``` and ```-par 8``` mean that six codes in "absolute" mode will be learned and the bam file processing will happen using eight cores.
 
 
-
 #### Differential mode: ```differential```
 
 Designed to work on epigenetic marks mapped in two conditions (A and B) quantified in one type of locus.
@@ -147,7 +146,12 @@ files in a sigle ```run``` directory:
     
 The procedure creates two files for the two matrices ```{parameters}.arr``` (optionally) and
 ```{parameters}.epi```.
- 
+
+Example command line:
+
+```
+epicode.py differential
+```
 
 #### Discriminatory mode: ```discriminatory```
 
@@ -177,6 +181,10 @@ in a sigle ```runid``` directory:
 The procedure creates two files for the two matrices ```{parameters}.arr``` (optionally) and
 ```{parameters}.epi```. The files can be used as input to the logistic regression classifier task
 ``logistic_classifier``.
+
+```
+epicode.py discriminatory
+```
 
 ### Low-level interface
 
