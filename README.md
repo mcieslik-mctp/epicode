@@ -135,6 +135,10 @@ results (files) are saved into the ```odn``` directory (default ```differential_
 output files that are data matrices are generated from input BAM filenames and are optionally shortened
 (```--shorten``` option) by removing redundant substrings. 
 
+The input to the ```differential``` mode are two sets of BAM files. Each set should contain several BAM 
+files, typically more than 4. Within each set the bam files should have identical names i.e. they should
+be the same marks mapped in two conditions.
+
 This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate 
 files in a sigle ```run``` directory:
 
@@ -150,10 +154,9 @@ The procedure creates two files for the two matrices ```{parameters}.arr``` (opt
 Example command line:
 
 ```
-epicode.py differential -c 8 -par 4 <<repo dir>>data/hsmm_prom_1000.bed -abams <<A bams dir>>/*.bam -bams <B bams dir>>/*.bam
+epicode.py differential -c 8 -par 4 <<repo dir>>data/hsmm_prom_1000.bed -abams <<A bams dir>>/*.bam -bbams <<B bams dir>>/*.bam
 ```
-Here ```<<repo dir>>``` is where you checked out the git reposity and ```<<bam dir>>``` is a directory with bam files. The parameters ```-c 6``` and ```-par 4``` mean that six codes in "differential" mode will be learned and the bam file processing will happen using four cores.
-
+Here ```<<repo dir>>``` is where you checked out the git reposity and ```<<A bams dir>>``` and  ```<<B bams dir>>``` are directories with BAM files. Epicode assumes that both directories contain BAM files with identical names, such that listing their contents returns identical filenames (basenames). The parameters ```-c 6``` and ```-par 4``` mean that six codes in "differential" mode will be learned and the BAM file processing will happen using four cores.
 
 #### Discriminatory mode: ```discriminatory```
 
@@ -259,11 +262,25 @@ script take an epigenetic code file ```.epi``` and the name of an output graphic
 Example usage:
 
 ```
-$ Rscript epicode/data/absolute_codes.epi absolute_codes.png
+$ Rscript <<repo dir>>/scripts/absolute_plot.r epicode/data/absolute_codes.epi absolute_codes.png
 ```
 
 ```
-$ Rscript epicode/data/differential_codes.epi differential_codes.png
+$ Rscript <<repo dir>>/scripts/gainloss_plot.r epicode/data/differential_codes.epi differential_codes.png
+```
+
+The above scripts require the following packages: ```ggplot2```, ```reshape2```, ```stringr```, and ```rjson```.
+All of these can be installed from CRAN by the following command:
+
+
+```R
+install.packages("<<package name>>")
+```
+
+For example:
+
+```R
+install.packages("rjson")
 ```
 
 
