@@ -10,6 +10,8 @@ from sklearn import decomposition, cross_validation, grid_search, linear_model, 
 from sklearn.decomposition.nmf import nnls
 from pysam import Samfile
 
+MINBAMS = 3
+
 
 def load_epi(epi):
     """(internal) load epi file
@@ -243,6 +245,7 @@ def extract_absolute(bed=None, bams=None, odn=None, runid=None, shorten=False, p
     # checks input
     chk_exit(bed is None, "a BED6+ file is required")
     chk_exit(bams is None, "a set of BAM files is required")
+    chk_exit(len(bams) > MINBAMS, "at least %s BAM files are required" % MINBAMS)
     chks([inp_file(bam) for bam in bams])
     mkdir(odn)
     
@@ -362,6 +365,8 @@ def extract_diff(bed=None, abams=None, bbams=None, odn=None, runid=None, shorten
     # checks input
     chk_exit(*inp_file(bed))
     chks([inp_file(bam) for bam in abams + bbams])
+    chk_exit(len(abams) > MINBAMS, "at least %s BAM files are required" % MINBAMS)
+
     abams = tuple(sorted(abams))
     bbams = tuple(sorted(bbams))
     mkdir(odn)
