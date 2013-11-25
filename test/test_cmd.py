@@ -53,8 +53,8 @@ def test_code_sklearn():
 @task
 def test_multi_code_sklearn():
     mkdir(path("test_multicode_sklearn"))
-    assert sh("cp ../data/{0,1}*sig95.arr test_multicode_sklearn") == 0
-    assert sh("epicode.py multi_code_sklearn -base test_multicode_sklearn/tve -c 6 test_multicode_sklearn/{0,1}*sig95.arr") == 0
+    assert sh("cp ../data/[01]*sig95.arr test_multicode_sklearn") == 0
+    assert sh("epicode.py multi_code_sklearn -base test_multicode_sklearn/tve -c 6 test_multicode_sklearn/[01]*sig95.arr") == 0
     with open("test_multicode_sklearn/tve_pgnmf-c#6-i#None-p#.epi") as fh:
          head = fh.readline()
          firs = fh.readline()
