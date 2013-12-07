@@ -245,8 +245,9 @@ def extract_absolute(bed=None, bams=None, odn=None, runid=None, shorten=False, p
     # checks input
     chk_exit(bed is None, "a BED6+ file is required")
     chk_exit(bams is None, "a set of BAM files is required")
-    chk_exit(len(bams) > MINBAMS, "at least %s BAM files are required" % MINBAMS)
+    chk_exit(len(bams) < MINBAMS, "at least %s BAM files are required" % MINBAMS)
     chks([inp_file(bam) for bam in bams])
+    chks([inp_file(path(bam + ".bai")) for bam in bams])
     mkdir(odn)
     
     # run id
@@ -364,8 +365,9 @@ def extract_diff(bed=None, abams=None, bbams=None, odn=None, runid=None, shorten
     """
     # checks input
     chk_exit(*inp_file(bed))
+    chk_exit(len(abams) < MINBAMS, "at least %s BAM files are required" % MINBAMS)
     chks([inp_file(bam) for bam in abams + bbams])
-    chk_exit(len(abams) > MINBAMS, "at least %s BAM files are required" % MINBAMS)
+    chks([inp_file(path(bam + ".bai")) for bam in bams])
 
     abams = tuple(sorted(abams))
     bbams = tuple(sorted(bbams))
@@ -556,6 +558,7 @@ def absolute(bed=None, bams=None, odn=path("absolute_out"), runid=None, shorten=
 
     """
     chk_exit(c is None, "error: c (number of codes) not specified")
+    chk_exit(c > len(bams), "error: c (number of codes) larger than number of BAM files")
     abslvl = extract_absolute(bed, bams, odn, runid, shorten, par)
     abssca = scale_features(abslvl, colsca)
     codes = code_sklearn(abssca, method, init, c, params)
@@ -584,6 +587,7 @@ def differential(bed=None, abams=None, bbams=None, odn=path("differential_out"),
 
     """
     chk_exit(c is None, "error: c (number of codes) not specified")
+    chk_exit(c > len(bams), "error: c (number of codes) larger than number of BAM files")
     abcnt = extract_diff(bed, abams, bbams, odn, runid, shorten, step, par)
     ablvl = scale_pairs(abcnt, pairsca) # adjust for readdepth
     gllvl = scale_diff(ablvl) # from two sample to gain loss
@@ -610,6 +614,7 @@ def discriminatory(beds=None, bams=None, odn=path("discriminatory_out"), runid=N
 
     """
     chk_exit(c is None, "error: c (number of codes) not specified")
+    chk_exit(c > len(bams), "error: c (number of codes) larger than number of BAM files")
     arrs = []
     for i, bed in enumerate(beds):
         abslvl = extract_absolute(bed, bams, odn, "%s_%s" % (i, runid), shorten, par)
