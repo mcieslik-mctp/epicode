@@ -142,8 +142,8 @@ results (files) are saved into the ```odn``` directory (default ```differential_
 output files that are data matrices are generated from input BAM filenames and are optionally shortened
 (```--shorten``` option) by removing redundant substrings. 
 
-The input to the ```differential``` mode are two sets of BAM files. Each set should contain several BAM 
-files, typically more than 4. Within each set the bam files should have identical names i.e. they should
+The input to the ```differential``` mode are two ordered sets of BAM files. Each set should contain several BAM 
+files, typically more than 4. Within each ordered set the bam files should have identical names i.e. they should
 be the same marks mapped in two conditions.
 
 This is a wrapper for the following chain of tasks, each task saves the generated data as intermediate 
