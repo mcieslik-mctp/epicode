@@ -1,7 +1,6 @@
 library(ggplot2)
 library(reshape2)
 library(stringr)
-library(rjson)
 
 args = commandArgs(TRUE)
 

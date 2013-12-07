@@ -269,7 +269,7 @@ $ Rscript <<repo dir>>/scripts/absolute_plot.r epicode/data/absolute_codes.epi a
 $ Rscript <<repo dir>>/scripts/gainloss_plot.r epicode/data/differential_codes.epi differential_codes.png
 ```
 
-The above scripts require the following packages: ```ggplot2```, ```reshape2```, ```stringr```, and ```rjson```.
+The above scripts require the following packages: ```ggplot2```, ```reshape2```, ```stringr```.
 All of these can be installed from CRAN by the following command:
 
 
@@ -280,7 +280,7 @@ install.packages("<<package name>>")
 For example:
 
 ```R
-install.packages("rjson")
+install.packages("ggplot2")
 ```
 
 
