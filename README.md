@@ -33,7 +33,7 @@ Walk-through example
 --------------------
 
 To see how epicode could be used with ENCODE data see the full example in
-```data/encode_3step.md```.
+```encode_3step.md```.
 
 
 EpiCODE modes
