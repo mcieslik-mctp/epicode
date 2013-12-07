@@ -28,11 +28,13 @@ attempts to find patterns of coordinated mark changes. In ```discriminatory```
 mode two (or more) genomic loci are differentiated based their associated
 patterns.
 
+
 Walk-through example
 --------------------
 
 To see how epicode could be used with ENCODE data see the full example in
-```data/encode_3step.md```
+```data/encode_3step.md```.
+
 
 EpiCODE modes
 -------------
