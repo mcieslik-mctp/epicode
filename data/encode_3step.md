@@ -1,5 +1,5 @@
-Step 0
-######
+Step 1
+------
 
 Install epicode, either from PyPI or from the github repository (this step requires a that your OS has python2.7, with setuptools (or PIP) pre-installed). Other dependencies will be downloaded and compiled if needed, but it is recommended that numpy, scipy, and Cython are also pre-installed by the OS-specific package manager.
 
@@ -20,8 +20,8 @@ $ epicode.py
 
 The last command tests if epicode.py can be found in your ```$PATH``` and all dependecies can be imported. If no command is found or epicode.py returns an error please read the detailed installation instructions in ```epicode/README.md``` and if it does not help file an issue at (https://github.com/mcieslik-mctp/epicode)
 
-Step 1
-###### 
+Step 2
+------
 
 Download the necessary files (requires ```xargs``` and ```wget``` both pre-installed on most Linux distributions)
 
@@ -41,7 +41,7 @@ $ cp epicode/data/hsmm_prom_1000.bed .
 ```
 
 Step 3
-######
+------
 
 Now we can run epicode.py in ```absolute``` mode.
 
@@ -58,15 +58,4 @@ $ Rscript epicode/scripts/absolute_plot.r absolute_out/*epi encode_absolute.png
 ```
 
 The output should match the one included in the repository at ```epicode/data/encode_absolute.png```.
-
-
-
-
-
-
-
-
-
-
-
 
