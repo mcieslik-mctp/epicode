@@ -32,8 +32,7 @@ patterns.
 Walk-through example
 --------------------
 
-To see how epicode could be used with ENCODE data see the full example in
-```encode_3step.md```.
+To see how epicode could be used with ENCODE data see the full example in.
 
 
 EpiCODE modes
