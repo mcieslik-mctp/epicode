@@ -6,7 +6,7 @@ Install epicode, either from PyPI or from the github repository (this step requi
 ```bash
 $ git clone https://github.com/mcieslik-mctp/epicode.git
 $ cd epicode
-$ python2 setpu.py install
+$ python2 setup.py install
 ```
 
 This step should finish without error and should install any missing dependencies (moke, pysam, scikit-learn, etc).
@@ -34,7 +34,7 @@ $ cat a549_rep1_etoh.txt | xargs -n1 -P6 -I '{}' wget -c '{}'
 
 This process can take several hours depending on the speed of your internet connection as the total size od the downloaded data is 8G. Six files (``-P6``) are downloaded at the same time. You can resume downloading by running the command again.
 
-Finally, we need a bed file with the regions of interest (here ~19k 1000bp promoters)
+Finally, we will need a bed file with the regions of interest (here ~19k 1000bp promoters)
 
 ```bash
 $ cp epicode/data/hsmm_prom_1000.bed . 
